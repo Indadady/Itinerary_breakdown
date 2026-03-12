@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>제주 투어메이커 산출내역서 자동 생성기</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- React & ReactDOM (CDN) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Babel (브라우저에서 JSX 컴파일) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    /* 인쇄용 최적화 CSS */
+    @media print {
+      @page { size: A4; margin: 0; }
+      body { 
+        margin: 0; 
+        -webkit-print-color-adjust: exact !important; 
+        print-color-adjust: exact !important; 
+        background-color: white !important;
+      }
+      .print-hidden { display: none !important; }
+      .print-p-0 { padding: 0 !important; }
+      .print-w-full { width: 100% !important; max-width: 100% !important; }
+      .print-shadow-none { box-shadow: none !important; }
+      .print-bg-white { background-color: white !important; }
+      
+      /* 스크롤바 영역 제거 및 전체 출력 설정 */
+      #preview-container {
+        overflow: visible !important;
+        height: auto !important;
+      }
+    }
+    
+    /* 웹 화면 스크롤바 디자인 */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; }
+    ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+    // --- SVG 아이콘 컴포넌트 (외부 라이브러리 의존성 제거) ---
+    const IconPrinter = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>;
+    const IconPlus = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>;
+    const IconTrash2 = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>;
+    const IconBuilding2 = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg>;
+    const IconCalculator = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="16" height="20" x="4" y="2" rx="2"></rect><line x1="8" x2="16" y1="6" y2="6"></line><line x1="16" x2="16" y1="14" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>;
+    const IconCalendar = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>;
+
+    const App = () => {
+      // 1. 상태 관리
+      const [agency, setAgency] = useState('tourmaker'); 
+      const [basicInfo, setBasicInfo] = useState({
+        title: '북평초등학교 제주도 현장체험학습 (수학여행)',
+        period: '2026. 04. 15 (수) ~ 2026. 04. 17 (금) [2박 3일]',
+        pax: '학생 45명, 인솔교사 5명 (총 50명)',
+        manager: '투어메이커 대표',
+      });
+
+      const [itineraries, setItineraries] = useState([
+        { id: 1, day: '1일차', date: '04/15(수)', time: '09:00 - 18:00', location: '김포공항 출발 -> 제주공항 도착 -> 에코랜드 테마파크 -> 중식 -> 새별오름 -> 호텔 체크인' },
+        { id: 2, day: '2일차', date: '04/16(목)', time: '09:00 - 18:00', location: '호텔 조식 -> 성산일출봉 -> 아쿠아플라넷 제주 -> 중식 -> 비자림 -> 레크레이션 -> 석식 및 휴식' },
+        { id: 3, day: '3일차', date: '04/17(금)', time: '09:00 - 15:00', location: '호텔 조식 -> 넥슨컴퓨터박물관 -> 용두암 -> 제주공항 출발 -> 김포공항 도착 및 해산' },
+      ]);
+
+      const [costs, setCosts] = useState([
+        { id: 1, category: '항공료', name: '왕복 항공권 (유류, 공항세 포함)', unitPrice: 125000, qty: 50, days: 1, note: '대한/아시아나 기준' },
+        { id: 2, category: '숙박비', name: '제주 4성급 호텔 (4인 1실 기준)', unitPrice: 80000, qty: 50, days: 2, note: '조식 2회 포함' },
+        { id: 3, category: '차량비', name: '45인승 대형 전세버스', unitPrice: 600000, qty: 2, days: 3, note: '기사 수고비, 톨게이트, 주차비 포함' },
+        { id: 4, category: '식대', name: '중식 및 석식 (총 5식)', unitPrice: 12000, qty: 50, days: 5, note: '현지 향토음식 위주' },
+        { id: 5, category: '입장료', name: '에코랜드, 아쿠아플라넷 등', unitPrice: 35000, qty: 50, days: 1, note: '단체할인 적용가' },
+        { id: 6, category: '기타/수수료', name: '여행자보험 및 기획 진행 수수료', unitPrice: 15000, qty: 50, days: 1, note: '행사 총괄 진행' },
+      ]);
+
+      // 2. 자동 계산 로직
+      const totalAmount = useMemo(() => {
+        return costs.reduce((sum, item) => sum + (item.unitPrice * item.qty * item.days), 0);
+      }, [costs]);
+
+      const perPersonAmount = useMemo(() => {
+        const totalPax = 50; 
+        return Math.round(totalAmount / totalPax);
+      }, [totalAmount]);
+
+      // 3. 핸들러 함수들
+      const handlePrint = () => window.print();
+
+      const handleInfoChange = (e) => {
+        const { name, value } = e.target;
+        setBasicInfo(prev => ({ ...prev, [name]: value }));
+      };
+
+      const updateCost = (id, field, value) => {
+        setCosts(prev => prev.map(cost => 
+          cost.id === id ? { ...cost, [field]: field === 'name' || field === 'category' || field === 'note' ? value : Number(value) } : cost
+        ));
+      };
+
+      const addCostRow = () => {
+        const newId = costs.length > 0 ? Math.max(...costs.map(c => c.id)) + 1 : 1;
+        setCosts([...costs, { id: newId, category: '', name: '', unitPrice: 0, qty: 1, days: 1, note: '' }]);
+      };
+
+      const removeCostRow = (id) => {
+        setCosts(costs.filter(c => c.id !== id));
+      };
+
+      const updateItinerary = (id, field, value) => {
+        setItineraries(prev => prev.map(item => 
+          item.id === id ? { ...item, [field]: value } : item
+        ));
+      };
+
+      const addItineraryRow = () => {
+        const newId = itineraries.length > 0 ? Math.max(...itineraries.map(i => i.id)) + 1 : 1;
+        setItineraries([...itineraries, { id: newId, day: `${newId}일차`, date: '', time: '', location: '' }]);
+      };
+
+      const removeItineraryRow = (id) => {
+        setItineraries(itineraries.filter(i => i.id !== id));
+      };
+
+      const formatNum = (num) => new Intl.NumberFormat('ko-KR').format(num);
+
+      // 여행사명 렌더링
+      const agencyName = agency === 'tourmaker' ? '투어메이커' : '(주)제주테마투어';
+
+      return (
+        <div className="flex flex-col md:flex-row h-screen bg-gray-100 font-sans overflow-hidden">
+          
+          {/* ================= 좌측: 데이터 입력 패널 (인쇄시 숨김) ================= */}
+          <div className="w-full md:w-[400px] lg:w-[450px] bg-white border-r border-gray-200 p-6 overflow-y-auto print-hidden shadow-lg z-10 flex-shrink-0">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                <IconCalculator className="w-5 h-5 mr-2 text-blue-600" />
+                내역서 자동 빌더
+              </h2>
+              <button 
+                onClick={handlePrint}
+                className="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-md text-sm flex items-center transition-colors"
+              >
+                <IconPrinter className="w-4 h-4 mr-2" />
+                PDF 인쇄
+              </button>
+            </div>
+
+            {/* 업체 선택 */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">적용 업체 로고 (우측 상단)</label>
+              <div className="flex gap-4">
+                <label className="flex items-center cursor-pointer">
+                  <input type="radio" name="agency" value="tourmaker" checked={agency === 'tourmaker'} onChange={(e) => setAgency(e.target.value)} className="mr-2 text-blue-600 focus:ring-blue-500" />
+                  <span className="text-sm font-medium">투어메이커 (로고)</span>
+                </label>
+                <label className="flex items-center cursor-pointer">
+                  <input type="radio" name="agency" value="jeju" checked={agency === 'jeju'} onChange={(e) => setAgency(e.target.value)} className="mr-2 text-blue-600 focus:ring-blue-500" />
+                  <span className="text-sm font-medium">(주)제주테마투어 (텍스트)</span>
+                </label>
+              </div>
+            </div>
+
+            {/* 기본 정보 */}
+            <div className="space-y-4 mb-8">
+              <h3 className="text-md font-bold text-gray-700 border-b pb-2 flex items-center"><IconBuilding2 className="w-4 h-4 mr-2"/> 기본 정보</h3>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">행사명</label>
+                <input type="text" name="title" value={basicInfo.title} onChange={handleInfoChange} className="w-full text-sm border-gray-300 rounded p-2 border focus:ring-blue-500 focus:border-blue-500" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">행사 기간</label>
+                <input type="text" name="period" value={basicInfo.period} onChange={handleInfoChange} className="w-full text-sm border-gray-300 rounded p-2 border focus:ring-blue-500 focus:border-blue-500" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">인원</label>
+                <input type="text" name="pax" value={basicInfo.pax} onChange={handleInfoChange} className="w-full text-sm border-gray-300 rounded p-2 border focus:ring-blue-500 focus:border-blue-500" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">담당자</label>
+                <input type="text" name="manager" value={basicInfo.manager} onChange={handleInfoChange} className="w-full text-sm border-gray-300 rounded p-2 border focus:ring-blue-500 focus:border-blue-500" />
+              </div>
+            </div>
+
+            {/* 일정표 입력 */}
+            <div className="space-y-4 mb-8">
+              <div className="flex justify-between items-center border-b pb-2">
+                <h3 className="text-md font-bold text-gray-700 flex items-center"><IconCalendar className="w-4 h-4 mr-2"/> 일정표 구성</h3>
+                <button onClick={addItineraryRow} className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded flex items-center"><IconPlus className="w-3 h-3 mr-1"/>추가</button>
+              </div>
+              {itineraries.map((item) => (
+                <div key={item.id} className="p-3 bg-gray-50 border border-gray-200 rounded relative group">
+                  <button onClick={() => removeItineraryRow(item.id)} className="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"><IconTrash2 className="w-4 h-4"/></button>
+                  <div className="flex gap-2 mb-2">
+                    <input type="text" value={item.day} onChange={(e) => updateItinerary(item.id, 'day', e.target.value)} placeholder="N일차" className="w-1/3 text-xs border-gray-300 rounded p-1 border" />
+                    <input type="text" value={item.date} onChange={(e) => updateItinerary(item.id, 'date', e.target.value)} placeholder="날짜" className="w-2/3 text-xs border-gray-300 rounded p-1 border" />
+                  </div>
+                  <textarea value={item.location} onChange={(e) => updateItinerary(item.id, 'location', e.target.value)} placeholder="상세 일정 입력 (예: 공항 -> 호텔)" className="w-full text-xs border-gray-300 rounded p-2 border h-16 resize-none" />
+                </div>
+              ))}
+            </div>
+
+            {/* 산출내역 입력 */}
+            <div className="space-y-4 mb-8">
+              <div className="flex justify-between items-center border-b pb-2">
+                <h3 className="text-md font-bold text-gray-700 flex items-center"><IconCalculator className="w-4 h-4 mr-2"/> 원가 및 산출내역</h3>
+                <button onClick={addCostRow} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded flex items-center"><IconPlus className="w-3 h-3 mr-1"/>추가</button>
+              </div>
+              {costs.map((cost) => (
+                <div key={cost.id} className="p-3 bg-white border border-gray-200 rounded shadow-sm relative group space-y-2">
+                   <button onClick={() => removeCostRow(cost.id)} className="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"><IconTrash2 className="w-4 h-4"/></button>
+                   <div className="flex gap-2 pr-6">
+                     <input type="text" value={cost.category} onChange={(e) => updateCost(cost.id, 'category', e.target.value)} placeholder="구분(예: 숙박비)" className="w-1/3 text-xs border-gray-300 rounded p-1 border font-semibold" />
+                     <input type="text" value={cost.name} onChange={(e) => updateCost(cost.id, 'name', e.target.value)} placeholder="내용(예: 4성급 호텔)" className="w-2/3 text-xs border-gray-300 rounded p-1 border" />
+                   </div>
+                   <div className="flex gap-2 items-center text-xs">
+                     <input type="number" value={cost.unitPrice} onChange={(e) => updateCost(cost.id, 'unitPrice', e.target.value)} placeholder="단가" className="w-1/3 p-1 border rounded text-right" /> 원 x
+                     <input type="number" value={cost.qty} onChange={(e) => updateCost(cost.id, 'qty', e.target.value)} placeholder="수량" className="w-1/6 p-1 border rounded text-center" /> 명 x
+                     <input type="number" value={cost.days} onChange={(e) => updateCost(cost.id, 'days', e.target.value)} placeholder="일수" className="w-1/6 p-1 border rounded text-center" /> 일
+                   </div>
+                   <input type="text" value={cost.note} onChange={(e) => updateCost(cost.id, 'note', e.target.value)} placeholder="비고 (예: 조식포함)" className="w-full text-xs border-gray-300 rounded p-1 border text-gray-500" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ================= 우측: 실시간 미리보기 및 PDF 인쇄 영역 ================= */}
+          <div id="preview-container" className="flex-1 bg-gray-200 overflow-y-auto p-4 md:p-8 print-p-0 print-w-full print-bg-white flex justify-center">
+            {/* A4 용지 규격 래퍼 */}
+            <div className="bg-white w-[210mm] min-h-[297mm] shadow-2xl print-shadow-none p-[15mm] print-p-0 mx-auto box-border flex flex-col relative">
+              
+              {/* Header */}
+              <div className="flex justify-between items-end border-b-2 border-gray-900 pb-4 mb-6 mt-4">
+                <div>
+                  <h1 className="text-2xl font-black text-gray-900 tracking-tight leading-tight">행사 일정 및 산출내역서</h1>
+                  <p className="text-sm text-gray-500 mt-2">작성일: {new Date().toLocaleDateString('ko-KR')}</p>
+                </div>
+                <div className="text-right">
+                  {agency === 'tourmaker' ? (
+                    <img 
+                      src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHfgIX70O5k6Anuo0UgALIdaG9jSga9auHu3uyz0uEirylGPAJnjN_qQbvEGMUvPqUQf_g9FMNUHRxlDcUBf4vZ3Mpy4TnA9WxbmzWYK11gt2zuy_Irl4wctNFjcjLyPo0GPXV792o_J7L9guRMuDfeC1gy7USwywjYbECZgzcsHybuGRRAXAnO1eNmP8/s320/logo.png" 
+                      alt="투어메이커 로고" 
+                      className="h-10 object-contain ml-auto"
+                    />
+                  ) : (
+                    <div className="font-extrabold text-xl text-gray-800 tracking-widest">(주)제주테마투어</div>
+                  )}
+                </div>
+              </div>
+
+              {/* 1. 기본 정보 표 */}
+              <div className="mb-8">
+                <h2 className="text-lg font-bold text-gray-800 mb-2 border-l-4 border-gray-800 pl-2">1. 행사 개요</h2>
+                <table className="w-full border-collapse border border-gray-300 text-sm">
+                  <tbody>
+                    <tr>
+                      <th className="border border-gray-300 bg-gray-100 p-2 w-1/4 text-left font-semibold text-gray-700">행사명</th>
+                      <td className="border border-gray-300 p-2 font-bold">{basicInfo.title}</td>
+                    </tr>
+                    <tr>
+                      <th className="border border-gray-300 bg-gray-100 p-2 text-left font-semibold text-gray-700">행사 기간</th>
+                      <td className="border border-gray-300 p-2">{basicInfo.period}</td>
+                    </tr>
+                    <tr>
+                      <th className="border border-gray-300 bg-gray-100 p-2 text-left font-semibold text-gray-700">참가 인원</th>
+                      <td className="border border-gray-300 p-2">{basicInfo.pax}</td>
+                    </tr>
+                    <tr>
+                      <th className="border border-gray-300 bg-gray-100 p-2 text-left font-semibold text-gray-700">담당자</th>
+                      <td className="border border-gray-300 p-2">{basicInfo.manager}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* 2. 행사 일정표 */}
+              <div className="mb-8">
+                <h2 className="text-lg font-bold text-gray-800 mb-2 border-l-4 border-gray-800 pl-2">2. 상세 일정표</h2>
+                <table className="w-full border-collapse border border-gray-300 text-sm text-center">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border border-gray-300 p-2 w-1/6 text-gray-700">일자</th>
+                      <th className="border border-gray-300 p-2 w-1/6 text-gray-700">날짜</th>
+                      <th className="border border-gray-300 p-2 w-4/6 text-gray-700">주요 일정 내용</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {itineraries.map((item, idx) => (
+                      <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <td className="border border-gray-300 p-3 font-semibold text-gray-800">{item.day}</td>
+                        <td className="border border-gray-300 p-3 text-gray-600">{item.date}</td>
+                        <td className="border border-gray-300 p-3 text-left leading-relaxed text-gray-800 whitespace-pre-wrap">
+                          {item.location}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* 3. 산출 내역서 */}
+              <div className="mb-8 flex-grow">
+                <h2 className="text-lg font-bold text-gray-800 mb-2 border-l-4 border-gray-800 pl-2">3. 산출 내역</h2>
+                <table className="w-full border-collapse border border-gray-300 text-sm">
+                  <thead>
+                    <tr className="bg-gray-100 text-center">
+                      <th className="border border-gray-300 p-2 w-2/12 text-gray-700">구분</th>
+                      <th className="border border-gray-300 p-2 w-4/12 text-gray-700">내용</th>
+                      <th className="border border-gray-300 p-2 w-3/12 text-gray-700">산출식 (단가 × 수량 × 일수)</th>
+                      <th className="border border-gray-300 p-2 w-2/12 text-gray-700">합계금액</th>
+                      <th className="border border-gray-300 p-2 w-1/12 text-gray-700">비고</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {costs.map((cost) => (
+                      <tr key={cost.id} className="text-center">
+                        <td className="border border-gray-300 p-2 font-semibold bg-gray-50 text-gray-700">{cost.category}</td>
+                        <td className="border border-gray-300 p-2 text-left">{cost.name}</td>
+                        <td className="border border-gray-300 p-2 text-xs text-gray-600">
+                          {formatNum(cost.unitPrice)}원 × {cost.qty}명 × {cost.days}일
+                        </td>
+                        <td className="border border-gray-300 p-2 text-right font-medium">
+                          {formatNum(cost.unitPrice * cost.qty * cost.days)} 원
+                        </td>
+                        <td className="border border-gray-300 p-2 text-xs text-gray-500">{cost.note}</td>
+                      </tr>
+                    ))}
+                    {/* 총계 Row */}
+                    <tr className="bg-gray-800 text-white font-bold text-base">
+                      <td colSpan="3" className="border border-gray-700 p-3 text-center">총 행사 비용 (VAT 포함)</td>
+                      <td className="border border-gray-700 p-3 text-right">{formatNum(totalAmount)} 원</td>
+                      <td className="border border-gray-700 p-3 text-center"></td>
+                    </tr>
+                    {/* 1인당 단가 Row */}
+                    <tr className="bg-blue-50 text-gray-900 font-bold">
+                      <td colSpan="3" className="border border-gray-300 p-2 text-center text-blue-800">1인당 예상 경비</td>
+                      <td className="border border-gray-300 p-2 text-right text-blue-800">{formatNum(perPersonAmount)} 원</td>
+                      <td className="border border-gray-300 p-2 text-center text-xs text-gray-500">(총액/50명 기준)</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p className="text-xs text-gray-500 mt-2 text-right">* 위 내역은 항공 및 현지 사정에 의해 변동될 수 있습니다.</p>
+              </div>
+
+              {/* 서명란 및 푸터 */}
+              <div className="mt-auto pt-8">
+                <div className="text-center mb-12">
+                  <h3 className="text-lg text-gray-800 mb-4">위와 같이 투어 일정을 제안합니다.</h3>
+                  <div className="text-2xl font-black text-gray-900 flex items-center justify-center gap-4">
+                    {agency === 'tourmaker' ? '투 어 메 이 커' : '(주) 제 주 테 마 투 어'}
+                    <span className="text-sm font-normal text-gray-500 border border-gray-300 rounded-full w-12 h-12 flex items-center justify-center inline-block ml-2">직인<br/>생략</span>
+                  </div>
+                </div>
+
+                {/* 대표님께서 지정하신 투어메이커 공통 푸터 규정 적용 */}
+                <div className="border-t border-gray-300 pt-4 text-center">
+                  <p className="text-[12px] text-[#6c757d] bg-[#f8f9fa] inline-block px-4 py-2 rounded text-center">
+                    [System Powered by TOURMAKER] 본 스마트 가이드북은 <strong>{agencyName}</strong>의 기획과 <a href="http://tourmaker.kr" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#6c757d] hover:underline">투어메이커</a>의 트래블 테크 기술 제휴로 제작되었습니다.
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
