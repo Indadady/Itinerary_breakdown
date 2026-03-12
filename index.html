@@ -273,13 +273,13 @@
                 <div class="flex-grow w-full h-full">
                     <table class="w-full text-[12px] h-full text-center align-middle">
                         <colgroup>
-                            <col width="12%">
-                            <col width="18%">
-                            <col width="23%">
                             <col width="11%">
-                            <col width="13%">
-                            <col width="13%">
+                            <col width="17%">
+                            <col width="23%">
                             <col width="10%">
+                            <col width="13%">
+                            <col width="15%">
+                            <col width="11%">
                         </colgroup>
                         <thead>
                             <tr class="print-bg-header bg-slate-100 text-slate-900 border-t-2 border-b-2 border-slate-800 h-10">
@@ -553,8 +553,8 @@
                     html += `
                         <td class="text-left px-2 whitespace-pre-line">${item.desc}</td>
                         <td class="text-center">${fmt(item.qty)}</td>
-                        <td class="text-right px-2">${fmt(item.krw)}</td>
-                        <td class="text-right px-2 font-bold">${fmtTotal(rowTotal)}</td>
+                        <td class="text-right px-2 whitespace-nowrap tracking-tight">${fmt(item.krw)}</td>
+                        <td class="text-right px-2 font-bold whitespace-nowrap tracking-tight">${fmtTotal(rowTotal)}</td>
                         <td class="text-center text-[10px] text-slate-500 whitespace-pre-line">${item.note}</td>
                     </tr>`;
                 }
@@ -563,7 +563,7 @@
                 html += `
                     <tr class="print-bg-gray bg-slate-50 font-bold border-b-2 border-slate-300 h-8">
                         <td colspan="5" class="text-center align-middle">${subtotalLabel}</td>
-                        <td class="text-right px-2 text-slate-800 align-middle">${fmtTotal(subtotal)}</td>
+                        <td class="text-right px-2 text-slate-800 align-middle whitespace-nowrap tracking-tight">${fmtTotal(subtotal)}</td>
                         <td class="print-bg-gray bg-slate-50"></td>
                     </tr>`;
                 return { html, subtotal };
@@ -607,12 +607,12 @@
             estHtml += `
                 <tr class="print-bg-header bg-slate-100 font-extrabold h-9">
                     <td colspan="5" class="text-center align-middle">(1)+(2)+(3) 합계 금액</td>
-                    <td class="text-right px-2 text-[14px] align-middle">₩ ${fmtTotal(grandTotal)}</td>
+                    <td class="text-right px-2 text-[14px] align-middle whitespace-nowrap tracking-tight">₩ ${fmtTotal(grandTotal)}</td>
                     <td class="print-bg-header bg-slate-100"></td>
                 </tr>
                 <tr class="print-bg-header bg-slate-100 font-extrabold border-b-2 border-slate-800 h-9">
                     <td colspan="5" class="text-center align-middle text-blue-900">(2)+(3) 합계 금액 (항공제외)</td>
-                    <td class="text-right px-2 text-[14px] text-blue-700 align-middle">₩ ${fmtTotal(tourmakerTotal)}</td>
+                    <td class="text-right px-2 text-[14px] text-blue-700 align-middle whitespace-nowrap tracking-tight">₩ ${fmtTotal(tourmakerTotal)}</td>
                     <td class="print-bg-header bg-slate-100"></td>
                 </tr>
             `;
