@@ -20,39 +20,44 @@
         
         body { font-family: 'Pretendard', 'Malgun Gothic', sans-serif; background-color: #e2e8f0; color: #1e293b; }
         
-        /* ===== 인쇄(PDF) 전용 A4 세팅 ===== */
-        @media print {
-            body { background-color: white !important; }
-            body * { visibility: hidden; }
-            #print-container, #print-container * { visibility: visible; }
-            #print-container {
-                position: absolute; left: 0; top: 0; width: 100%; margin: 0 !important; padding: 0 !important; background: white;
-            }
-            .no-print { display: none !important; }
-            
-            .print-bg-gray { background-color: #f8fafc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .print-bg-header { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .print-bg-yellow { background-color: #fef9c3 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .print-bg-blue { background-color: #eff6ff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-
-            @page { size: A4 portrait; margin: 0; } 
-            
-            .a4-page {
-                width: 210mm; height: 297mm; padding: 15mm; /* min-height 대신 height로 고정하여 플렉스 박스가 꽉 차게 유도 */
-                box-sizing: border-box; page-break-after: always;
-                display: flex; flex-direction: column; margin: 0 auto;
-            }
-            .a4-page:last-child { page-break-after: auto; }
-            table { border-collapse: collapse !important; width: 100% !important; }
-            th, td { border: 1px solid #64748b !important; }
-        }
-        
         /* ===== 웹뷰 A4 컨테이너 설정 ===== */
         #print-container { display: flex; flex-direction: column; gap: 20px; align-items: center; }
         .a4-page {
             width: 210mm; height: 297mm; background: white; padding: 15mm;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             display: flex; flex-direction: column; box-sizing: border-box;
+        }
+
+        /* ===== 인쇄(PDF) 전용 A4 세팅 (다중 페이지 잘림 방지 완벽 적용) ===== */
+        @media print {
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            body, html { 
+                background-color: white !important; 
+                height: auto !important; 
+                overflow: visible !important; 
+            }
+            .no-print { display: none !important; }
+            
+            /* 스크롤되는 Flex 레이아웃을 Block으로 풀어주어야 여러 장이 정상적으로 인쇄됨 */
+            .main-layout { display: block !important; height: auto !important; overflow: visible !important; }
+            #right-panel { display: block !important; width: 100% !important; padding: 0 !important; background: white !important; height: auto !important; overflow: visible !important; }
+            #print-container { display: block !important; width: 100% !important; }
+
+            .a4-page {
+                width: 210mm; height: 297mm; padding: 15mm; 
+                box-shadow: none !important; margin: 0 auto; 
+                page-break-after: always; /* 페이지 넘김 강제 */
+                position: relative;
+            }
+            .a4-page:last-child { page-break-after: auto; }
+
+            table { border-collapse: collapse !important; width: 100% !important; }
+            th, td { border: 1px solid #64748b !important; }
+
+            .print-bg-gray { background-color: #f8fafc !important; }
+            .print-bg-header { background-color: #f1f5f9 !important; }
+            .print-bg-yellow { background-color: #fef9c3 !important; }
+            .print-bg-blue { background-color: #eff6ff !important; }
         }
 
         /* 테이블 기본 세팅 */
@@ -62,7 +67,7 @@
         
         /* 테이블 높이 균등 배분 (일정 및 내역 꽉차게) */
         .flex-table { height: 100%; }
-        .flex-table tbody tr { height: auto; } /* 내용에 따라 비율대로 늘어남 */
+        .flex-table tbody tr { height: auto; }
 
         /* 스크롤바 */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
@@ -86,30 +91,13 @@
             </h1>
         </div>
         <div class="flex items-center gap-2">
-            <button id="btn-new" onclick="location.href=location.pathname" class="hidden bg-slate-600 hover:bg-slate-500 text-white px-3 py-1.5 rounded text-sm font-semibold transition">📝 새 문서</button>
-            <button onclick="generateShareLink()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-sm font-semibold shadow transition">🔗 링크 공유</button>
-            <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-sm font-semibold shadow transition">🖨️ PDF 인쇄</button>
-        </div>
-    </div>
-
-    <!-- 공유 링크 모달 -->
-    <div id="share-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 no-print">
-        <div class="bg-white p-6 rounded-xl shadow-2xl w-[90%] max-w-lg text-center">
-            <div class="text-4xl mb-3">🔗</div>
-            <h3 class="text-lg font-extrabold text-slate-800 mb-2">고객 공유용 링크 생성 완료!</h3>
-            <p class="text-xs text-gray-600 mb-5 leading-relaxed">
-                아래 링크를 복사하여 파트너사나 고객에게 카톡으로 전달하세요.<br>입력창 없이 <b>깔끔한 A4 뷰어 화면</b>만 보여집니다.
-            </p>
-            <input type="text" id="share-url-input" class="w-full border-2 border-blue-200 p-2.5 rounded-lg mb-5 text-xs text-slate-600 bg-blue-50 cursor-pointer outline-none" readonly onclick="this.select()">
-            <div class="flex gap-2 justify-center">
-                <button onclick="copyShareLink()" class="bg-blue-600 text-white px-5 py-2 rounded font-bold hover:bg-blue-700 transition text-sm">복사하기</button>
-                <button onclick="closeShareModal()" class="bg-slate-200 text-slate-800 px-5 py-2 rounded font-bold hover:bg-slate-300 transition text-sm">닫기</button>
-            </div>
+            <button onclick="clearForm()" class="bg-slate-600 hover:bg-slate-500 text-white px-3 py-1.5 rounded text-sm font-semibold transition">📝 새 문서 (초기화)</button>
+            <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-sm font-semibold shadow transition">🖨️ PDF 2장 인쇄</button>
         </div>
     </div>
 
     <!-- ===== 메인 레이아웃 ===== -->
-    <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+    <div class="main-layout flex-1 flex flex-col lg:flex-row overflow-hidden relative">
         
         <!-- [좌측] 데이터 입력 패널 (Flex 구조로 요약바 항상 하단 고정) -->
         <div id="input-panel" class="w-full lg:w-[500px] flex flex-col bg-white border-r border-gray-300 no-print flex-shrink-0 z-10">
@@ -119,7 +107,6 @@
                 <div class="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-lg">
                     <div class="flex justify-between items-center mb-3">
                         <span class="font-bold text-sm text-slate-800">💾 견적 템플릿 보관함</span>
-                        <button onclick="clearForm()" class="bg-white border border-slate-300 text-slate-500 hover:text-red-500 hover:bg-red-50 text-[11px] px-2 py-1 rounded">초기화</button>
                     </div>
                     <div class="flex gap-2 mb-2">
                         <input type="text" id="preset-search" class="w-[30%] border border-slate-300 rounded p-1.5 text-xs outline-none focus:border-blue-500" placeholder="검색..." oninput="filterPresets()">
@@ -208,9 +195,9 @@
                 <!-- ====== [페이지 1] 행사 일정표 ====== -->
                 <div class="a4-page" id="page-1">
                     
-                    <!-- 헤더: 여백을 대폭 줄이고 가로로 길게 (피드백 반영) -->
+                    <!-- 헤더: 여백을 대폭 줄이고 가로로 길게 -->
                     <div class="flex justify-between items-start mb-5">
-                        <div class="w-[65%]"> <!-- 너비를 65%로 늘려 내용을 한 줄로 표기 -->
+                        <div class="w-[65%]">
                             <table class="w-full text-[12px] border-t-2 border-b-2 border-slate-800 h-auto">
                                 <colgroup>
                                     <col width="22%">
@@ -240,7 +227,7 @@
                         <p class="text-slate-500 font-bold mt-1 tracking-[0.2em] text-[10px] uppercase">Tour Itinerary</p>
                     </div>
 
-                    <!-- 일정표 테이블 영역 (flex-1을 주어 남은 공간 전체 채움) -->
+                    <!-- 일정표 테이블 영역 -->
                     <div class="flex-1 w-full mt-2 mb-2 flex flex-col">
                         <table class="flex-table text-[12px] border-t-2 border-b-2 border-slate-800 h-full w-full">
                             <colgroup>
@@ -291,11 +278,17 @@
                         <p class="text-slate-500 font-bold mt-1 tracking-[0.2em] text-[10px] uppercase">Calculation Details</p>
                     </div>
 
-                    <!-- 산출내역 테이블 영역 (flex-1을 주어 꽉 채움) -->
+                    <!-- 산출내역 테이블 영역 (★ 대분류를 줄이고 총금액을 늘린 너비 세팅 ★) -->
                     <div class="flex-1 w-full mt-2 mb-2 flex flex-col">
                         <table class="flex-table text-[11px] text-center border-t-2 border-b-2 border-slate-800 w-full h-full">
                             <colgroup>
-                                <col width="14%"><col width="16%"><col width="26%"><col width="8%"><col width="11%"><col width="14%"><col width="11%">
+                                <col width="11%"> <!-- 대분류: 축소 -->
+                                <col width="15%"> <!-- 항목 -->
+                                <col width="25%"> <!-- 세부 내용 -->
+                                <col width="8%">  <!-- 수량 -->
+                                <col width="12%"> <!-- 단가 -->
+                                <col width="19%"> <!-- 총금액: 대폭 늘려서 두 줄 넘김 방지 -->
+                                <col width="10%"> <!-- 비고 -->
                             </colgroup>
                             <thead>
                                 <tr class="print-bg-header bg-slate-100 text-slate-900 border-b-2 border-slate-800" style="height: 35px;">
@@ -500,7 +493,6 @@
         // ================= 렌더링 (A4 출력) ================= //
         function getAgencyLogoHtml(agency) {
             if (agency === 'jeju') {
-                // 피드백: (주)제주테마투어 텍스트와 아래에 담당자 연락처 삽입
                 return `
                     <div class="text-right leading-tight">
                         <div class="font-black text-[20px] text-slate-800 tracking-widest">(주)제주테마투어</div>
@@ -535,7 +527,7 @@
             document.querySelectorAll('.out-agency-logo').forEach(el => el.innerHTML = logoHtml);
             document.querySelectorAll('.out-footer-text').forEach(el => el.innerHTML = footerHtml);
 
-            // 1. 일정표 렌더링 (이모지 없이 원본 그대로, 높이 100% 분배)
+            // 1. 일정표 렌더링
             let itHtml = '';
             const visibleIt = data.itineraries.filter(item => String(item.date || '').trim() !== '');
 
@@ -557,7 +549,7 @@
             }
             document.getElementById('tbody-itinerary').innerHTML = itHtml;
 
-            // 2. 산출내역 렌더링 로직 (엑셀 병합 완벽 구현)
+            // 2. 산출내역 렌더링
             function buildTableGroup(sumLabel, items) {
                 let html = '';
                 let subTotal = 0;
@@ -570,7 +562,7 @@
                     const catSpan = getRowspan(validItems, i, 'cat');
                     const nameSpan = getRowspan(validItems, i, 'cat', 'name');
 
-                    html += `<tr class="bg-white hover:bg-slate-50 transition h-auto">`; // h-auto로 내용에 맞게 조절되면서 전체 공간 분배
+                    html += `<tr class="bg-white hover:bg-slate-50 transition h-auto">`; 
                     
                     if (i === 0 || validItems[i].cat !== validItems[i-1].cat) {
                         html += `<td rowspan="${catSpan}" class="text-center font-bold print-bg-gray bg-slate-50 text-slate-800">${escAttr(item.cat)}</td>`;
@@ -657,21 +649,6 @@
             e.target.value = '';
         }
 
-        // ================= 공유 링크 로직 ================= //
-        function generateShareLink() {
-            const data = getFormData();
-            const encodedData = btoa(encodeURIComponent(JSON.stringify(data)));
-            document.getElementById('share-url-input').value = window.location.origin + window.location.pathname + '?data=' + encodedData;
-            document.getElementById('share-modal').style.display = 'flex';
-        }
-        function copyShareLink() {
-            document.getElementById('share-url-input').select();
-            document.execCommand('copy');
-            alert('클립보드에 복사되었습니다! 카톡으로 전달해주세요.');
-            closeShareModal();
-        }
-        function closeShareModal() { document.getElementById('share-modal').style.display = 'none'; }
-
         // ================= 템플릿 관리 ================= //
         function updatePresetDropdown(filterText = '') {
             const select = document.getElementById('preset-select');
@@ -723,24 +700,10 @@
             renderInputGrids();
             updatePresetDropdown();
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const encodedData = urlParams.get('data');
-            
-            if (encodedData) {
-                // 뷰어 모드
-                try {
-                    setFormData(JSON.parse(decodeURIComponent(atob(encodedData))));
-                    document.getElementById('input-panel').style.display = 'none';
-                    document.getElementById('btn-share').style.display = 'none';
-                    document.getElementById('btn-new').style.display = 'flex';
-                } catch (e) {
-                    setFormData(defaultData);
-                }
-            } else {
-                // 빌더 모드
-                setFormData(defaultData);
-            }
+            // 공유 기능이 삭제되었으므로 빌더 모드로만 동작
+            setFormData(defaultData);
             calculateAndRender();
+            
             document.getElementById('input-panel').addEventListener('input', (e) => {
                 if (!e.target.classList.contains('amount')) {
                     calculateAndRender();
