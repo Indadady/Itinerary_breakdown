@@ -28,17 +28,12 @@
             display: flex; flex-direction: column; box-sizing: border-box;
         }
 
-        /* ===== 인쇄(PDF) 전용 A4 세팅 (다중 페이지 잘림 방지 완벽 적용) ===== */
+        /* ===== 인쇄(PDF) 전용 A4 세팅 ===== */
         @media print {
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            body, html { 
-                background-color: white !important; 
-                height: auto !important; 
-                overflow: visible !important; 
-            }
+            body, html { background-color: white !important; height: auto !important; overflow: visible !important; }
             .no-print { display: none !important; }
             
-            /* 스크롤되는 Flex 레이아웃을 Block으로 풀어주어야 여러 장이 정상적으로 인쇄됨 */
             .main-layout { display: block !important; height: auto !important; overflow: visible !important; }
             #right-panel { display: block !important; width: 100% !important; padding: 0 !important; background: white !important; height: auto !important; overflow: visible !important; }
             #print-container { display: block !important; width: 100% !important; }
@@ -46,8 +41,7 @@
             .a4-page {
                 width: 210mm; height: 297mm; padding: 15mm; 
                 box-shadow: none !important; margin: 0 auto; 
-                page-break-after: always; /* 페이지 넘김 강제 */
-                position: relative;
+                page-break-after: always; position: relative;
             }
             .a4-page:last-child { page-break-after: auto; }
 
@@ -57,17 +51,26 @@
             .print-bg-gray { background-color: #f8fafc !important; }
             .print-bg-header { background-color: #f1f5f9 !important; }
             .print-bg-yellow { background-color: #fef9c3 !important; }
-            .print-bg-blue { background-color: #eff6ff !important; }
         }
 
         /* 테이블 기본 세팅 */
         table { border-collapse: collapse; width: 100%; table-layout: fixed; }
-        th, td { border: 1px solid #94a3b8; padding: 6px 8px; font-size: 12px; vertical-align: middle; word-wrap: break-word; }
+        th, td { border: 1px solid #94a3b8; padding: 6px 8px; font-size: 12px; vertical-align: middle; word-break: break-word; }
         th { text-align: center; font-weight: 700; color: #0f172a; }
         
-        /* 테이블 높이 균등 배분 (일정 및 내역 꽉차게) */
-        .flex-table { height: 100%; }
-        .flex-table tbody tr { height: auto; }
+        /* 컴팩트 헤더 테이블 세팅 */
+        .compact-table { table-layout: auto; width: auto; min-width: 50%; }
+        .compact-table th { padding: 4px 12px; white-space: nowrap; width: 25%; }
+        .compact-table td { padding: 4px 12px; white-space: nowrap; }
+
+        /* 일정표 꽉 차게 배분 (Flex Table) */
+        .itinerary-table { display: table; height: 100%; }
+        .itinerary-table tbody { height: 100%; }
+        .itinerary-table tr.data-row td { height: 100%; padding-top: 12px; padding-bottom: 12px; } /* 내용에 맞게 여백을 쫙 늘려줌 */
+        .itinerary-table tr.hotel-row td { height: 1px; padding-top: 6px; padding-bottom: 6px; } /* 숙소칸은 타이트하게 유지 */
+
+        .estimate-table { display: table; height: 100%; }
+        .estimate-table tbody tr { height: auto; }
 
         /* 스크롤바 */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
@@ -75,7 +78,6 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* 입력 폼 폰트 조절 */
         .slot-input { font-family: inherit; font-size: 12px; }
         .slot-input.amount { font-weight: 700; color: #1e40af; }
     </style>
@@ -83,7 +85,7 @@
 <body class="flex flex-col h-screen overflow-hidden">
 
     <!-- ===== 상단 네비게이션 바 ===== -->
-    <div class="bg-slate-900 text-white px-5 py-3 flex justify-between items-center no-print shadow-md z-20">
+    <div class="bg-slate-900 text-white px-5 py-3 flex justify-between items-center no-print shadow-md z-20 flex-shrink-0">
         <div class="flex items-center gap-3">
             <img src="https://blogger.googleusercontent.com/img/a/AVvXsEitI-Z-hD82keOJ1AqHw-VTZjpw2U-O5UjtV9h3zblyG0wjsVfBWe9X9o0Q_Spctrt7krkd9qXO0xKTmGJLw4gyMZrRqpshKMFttnyx6OcC8-IGz3XLUZpGQOnRqVdol8jz5HuoDLqsEifnVRhcjUJHm13Sz8JrX9aPswMNUwZPvGtJEnQjhc2PiXlo-B8" alt="Tourmaker" class="h-7 filter brightness-0 invert">
             <h1 class="text-[16px] font-bold tracking-wide text-emerald-400 border-l border-slate-600 pl-3">
@@ -91,7 +93,7 @@
             </h1>
         </div>
         <div class="flex items-center gap-2">
-            <button onclick="clearForm()" class="bg-slate-600 hover:bg-slate-500 text-white px-3 py-1.5 rounded text-sm font-semibold transition">📝 새 문서 (초기화)</button>
+            <button onclick="clearForm()" class="bg-slate-600 hover:bg-slate-500 text-white px-3 py-1.5 rounded text-sm font-semibold transition">📝 폼 초기화</button>
             <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-sm font-semibold shadow transition">🖨️ PDF 2장 인쇄</button>
         </div>
     </div>
@@ -99,10 +101,11 @@
     <!-- ===== 메인 레이아웃 ===== -->
     <div class="main-layout flex-1 flex flex-col lg:flex-row overflow-hidden relative">
         
-        <!-- [좌측] 데이터 입력 패널 (Flex 구조로 요약바 항상 하단 고정) -->
-        <div id="input-panel" class="w-full lg:w-[500px] flex flex-col bg-white border-r border-gray-300 no-print flex-shrink-0 z-10">
+        <!-- [좌측] 데이터 입력 패널 (Flex 레이아웃 적용) -->
+        <div id="input-panel" class="w-full lg:w-[500px] flex flex-col bg-white border-r border-gray-300 no-print z-10 flex-shrink-0 h-full">
             
-            <div class="flex-1 overflow-y-auto p-5 custom-scrollbar">
+            <!-- 스크롤 가능한 본문 영역 -->
+            <div class="flex-1 overflow-y-auto p-5 custom-scrollbar pb-10">
                 <!-- 템플릿 및 백업 -->
                 <div class="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-lg">
                     <div class="flex justify-between items-center mb-3">
@@ -152,7 +155,8 @@
 
                     <!-- 2. 일정표 -->
                     <div>
-                        <h3 class="font-bold text-blue-800 border-l-4 border-blue-800 pl-2 text-sm mb-3">2. 행사 일정표 (이모지 제외)</h3>
+                        <h3 class="font-bold text-blue-800 border-l-4 border-blue-800 pl-2 text-sm mb-3">2. 행사 일정표 (시간/주요일정 수기입력)</h3>
+                        <p class="text-[11px] text-slate-500 mb-2 leading-tight">※ 시간과 일정을 텍스트 박스에 자유롭게 적어주세요. 엑셀처럼 줄을 맞춰 자동 렌더링됩니다.</p>
                         <div id="itinerary-inputs-container" class="space-y-3"></div>
                     </div>
 
@@ -181,11 +185,12 @@
                 </div>
             </div>
             
-            <!-- ★ 실시간 요약 (스크롤에 상관없이 하단에 무조건 고정) ★ -->
-            <div class="bg-slate-900 text-white p-4 flex justify-between items-center shadow-[0_-4px_6px_rgba(0,0,0,0.1)] z-20 flex-shrink-0">
+            <!-- ★ 하단 고정 실시간 요약 바 (Sticky Footer) ★ -->
+            <div class="sticky bottom-0 bg-slate-900 text-white p-4 flex justify-between items-center shadow-[0_-4px_10px_rgba(0,0,0,0.2)] z-50 flex-shrink-0">
                 <span class="text-sm font-bold text-slate-300">총 견적 금액 (KRW)</span>
-                <span class="text-xl font-black text-amber-400" id="live-total-amount">0</span>
+                <span class="text-[22px] font-black text-amber-400" id="live-total-amount">0</span>
             </div>
+
         </div>
 
         <!-- [우측] 출력물 (A4 2장) 패널 -->
@@ -195,26 +200,22 @@
                 <!-- ====== [페이지 1] 행사 일정표 ====== -->
                 <div class="a4-page" id="page-1">
                     
-                    <!-- 헤더: 여백을 대폭 줄이고 가로로 길게 -->
-                    <div class="flex justify-between items-start mb-5">
-                        <div class="w-[65%]">
-                            <table class="w-full text-[12px] border-t-2 border-b-2 border-slate-800 h-auto">
-                                <colgroup>
-                                    <col width="22%">
-                                    <col width="78%">
-                                </colgroup>
+                    <!-- 헤더: 여백 없애고 컴팩트하게 좌측 정렬 -->
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="inline-block"> <!-- 표가 내용 크기만큼만 늘어나게 감싸기 -->
+                            <table class="compact-table border-t-2 border-b-2 border-slate-800 border-l border-r border-slate-300 text-[12px]">
                                 <tbody>
                                     <tr class="border-b border-slate-300">
-                                        <th class="print-bg-header bg-slate-50 py-1.5 px-2">고객명</th>
-                                        <td class="font-bold text-slate-900 px-3 out-clientName"></td>
+                                        <th class="print-bg-header bg-slate-50">고객명</th>
+                                        <td class="font-bold text-slate-900 out-clientName"></td>
                                     </tr>
                                     <tr class="border-b border-slate-300">
-                                        <th class="print-bg-header bg-slate-50 py-1.5 px-2">행사명</th>
-                                        <td class="font-bold text-slate-900 px-3 out-docTitle"></td>
+                                        <th class="print-bg-header bg-slate-50">행사명</th>
+                                        <td class="font-bold text-slate-900 out-docTitle"></td>
                                     </tr>
                                     <tr>
-                                        <th class="print-bg-header bg-slate-50 py-1.5 px-2">여행일</th>
-                                        <td class="px-3 out-travelDate"></td>
+                                        <th class="print-bg-header bg-slate-50">여행일</th>
+                                        <td class="out-travelDate"></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -222,14 +223,14 @@
                         <div class="out-agency-logo pt-1 text-right"></div>
                     </div>
 
-                    <div class="text-center mb-3">
+                    <div class="text-center mb-4">
                         <h2 class="text-[26px] font-black text-slate-900 tracking-widest border-b-2 border-slate-800 inline-block pb-1 px-4">행사 상세 일정표</h2>
                         <p class="text-slate-500 font-bold mt-1 tracking-[0.2em] text-[10px] uppercase">Tour Itinerary</p>
                     </div>
 
-                    <!-- 일정표 테이블 영역 -->
+                    <!-- 일정표 테이블 (세로 꽉차게 늘어남) -->
                     <div class="flex-1 w-full mt-2 mb-2 flex flex-col">
-                        <table class="flex-table text-[12px] border-t-2 border-b-2 border-slate-800 h-full w-full">
+                        <table class="itinerary-table w-full text-[12px] border-t-2 border-b-2 border-slate-800">
                             <colgroup>
                                 <col width="15%"><col width="65%"><col width="20%">
                             </colgroup>
@@ -239,7 +240,7 @@
                                 </tr>
                             </thead>
                             <tbody id="tbody-itinerary" class="border-b-2 border-slate-800">
-                                <!-- JS 렌더링 (높이 자동 배분) -->
+                                <!-- JS 렌더링 -->
                             </tbody>
                         </table>
                     </div>
@@ -253,20 +254,16 @@
                 <!-- ====== [페이지 2] 산출 내역서 ====== -->
                 <div class="a4-page" id="page-2">
                     
-                    <!-- 헤더 -->
+                    <!-- 헤더: 컴팩트 -->
                     <div class="flex justify-between items-start mb-5">
-                        <div class="w-[65%]">
-                            <table class="w-full text-[12px] border-t-2 border-b-2 border-slate-800 h-auto">
-                                <colgroup>
-                                    <col width="22%">
-                                    <col width="78%">
-                                </colgroup>
+                        <div class="inline-block">
+                            <table class="compact-table border-t-2 border-b-2 border-slate-800 border-l border-r border-slate-300 text-[12px]">
                                 <tbody>
-                                    <tr class="border-b border-slate-300"><th class="print-bg-header bg-slate-50 py-1.5 px-2">고객명</th><td class="font-bold text-slate-900 px-3 out-clientName"></td></tr>
-                                    <tr class="border-b border-slate-300"><th class="print-bg-header bg-slate-50 py-1.5 px-2">행사명</th><td class="font-bold text-slate-900 px-3 out-docTitle"></td></tr>
-                                    <tr class="border-b border-slate-300"><th class="print-bg-header bg-slate-50 py-1.5 px-2">여행일</th><td class="px-3 out-travelDate"></td></tr>
-                                    <tr class="border-b border-slate-300"><th class="print-bg-header bg-slate-50 py-1.5 px-2">여행인원</th><td class="px-3 out-paxStr"></td></tr>
-                                    <tr><th class="print-bg-header bg-slate-50 py-1.5 px-2">발송일자/비고</th><td class="px-3 out-issueDateRate text-blue-800 font-bold"></td></tr>
+                                    <tr class="border-b border-slate-300"><th class="print-bg-header bg-slate-50">고객명</th><td class="font-bold text-slate-900 out-clientName"></td></tr>
+                                    <tr class="border-b border-slate-300"><th class="print-bg-header bg-slate-50">행사명</th><td class="font-bold text-slate-900 out-docTitle"></td></tr>
+                                    <tr class="border-b border-slate-300"><th class="print-bg-header bg-slate-50">여행일</th><td class="out-travelDate"></td></tr>
+                                    <tr class="border-b border-slate-300"><th class="print-bg-header bg-slate-50">여행인원</th><td class="out-paxStr"></td></tr>
+                                    <tr><th class="print-bg-header bg-slate-50">작성일/비고</th><td class="out-issueDateRate text-blue-800 font-bold"></td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -278,17 +275,17 @@
                         <p class="text-slate-500 font-bold mt-1 tracking-[0.2em] text-[10px] uppercase">Calculation Details</p>
                     </div>
 
-                    <!-- 산출내역 테이블 영역 (★ 대분류를 줄이고 총금액을 늘린 너비 세팅 ★) -->
+                    <!-- 산출내역 테이블 영역 -->
                     <div class="flex-1 w-full mt-2 mb-2 flex flex-col">
-                        <table class="flex-table text-[11px] text-center border-t-2 border-b-2 border-slate-800 w-full h-full">
+                        <table class="estimate-table w-full text-[11px] text-center border-t-2 border-b-2 border-slate-800">
                             <colgroup>
-                                <col width="11%"> <!-- 대분류: 축소 -->
+                                <col width="11%"> <!-- 대분류 -->
                                 <col width="15%"> <!-- 항목 -->
-                                <col width="25%"> <!-- 세부 내용 -->
+                                <col width="26%"> <!-- 세부 내용 -->
                                 <col width="8%">  <!-- 수량 -->
                                 <col width="12%"> <!-- 단가 -->
-                                <col width="19%"> <!-- 총금액: 대폭 늘려서 두 줄 넘김 방지 -->
-                                <col width="10%"> <!-- 비고 -->
+                                <col width="19%"> <!-- 총금액 -->
+                                <col width="9%">  <!-- 비고 -->
                             </colgroup>
                             <thead>
                                 <tr class="print-bg-header bg-slate-100 text-slate-900 border-b-2 border-slate-800" style="height: 35px;">
@@ -357,10 +354,10 @@
             return span;
         }
 
-        // ================= 디폴트 피드백 데이터 (제주도 특화) ================= //
+        // ================= 디폴트 피드백 데이터 ================= //
         const defaultData = {
             basic: {
-                agency: "tourmaker", clientName: "사북고등학교", docTitle: "제주도 테마여행", 
+                agency: "jeju", clientName: "사북고등학교", docTitle: "제주도 테마여행", 
                 travelDate: "2026. 04. 01 ~ 04. 03 (2박 3일)", paxStr: "21명 (학생 19명 + 교사 2명)", issueDateRate: "=today() / 원화결제"
             },
             itineraries: [
@@ -380,9 +377,9 @@
                 { cat: "식대료", name: "중식료", desc: "3일차 (해물탕+옥돔구이)", qty: 21, krw: 18000, note: "" },
                 { cat: "식대료", name: "석식료", desc: "1일차 (전복뚝배기)", qty: 21, krw: 15000, note: "" },
                 { cat: "식대료", name: "석식료", desc: "2일차 (흑돼지구이 1인분)", qty: 21, krw: 22000, note: "" },
-                { cat: "제주 현지 차량", name: "대형버스 3일", desc: "*노팁/노옵션/노쇼핑 조건", qty: 1, krw: 1100000, note: "*기사 수고비 포함" },
-                { cat: "제주 현지 차량", name: "주차료", desc: "3일 주차료", qty: 1, krw: 10000, note: "" },
-                { cat: "관광지입장료", name: "유료관광지", desc: "성인 (비자림, 워터쇼, 에코랜드 등)", qty: 21, krw: 34000, note: "전일정 입장료" }
+                { cat: "현지 차량", name: "대형버스 3일", desc: "*노팁/노옵션/노쇼핑 조건", qty: 1, krw: 1100000, note: "*기사 수고비 포함" },
+                { cat: "현지 차량", name: "주차료", desc: "3일 주차료", qty: 1, krw: 10000, note: "" },
+                { cat: "관광지입장료", name: "유료관광지", desc: "성인 전일정", qty: 21, krw: 34000, note: "입장료 일체" }
             ],
             domestics: [
                 { cat: "여행자보험", name: "국내여행자보험", desc: "1억원 가입조건", qty: 21, krw: 5000, note: "주민번호 필요" },
@@ -400,7 +397,7 @@
                             <input type="text" id="inp-i${i}-date" class="w-full border border-blue-300 rounded p-1.5 text-[11px] font-bold text-center" placeholder="예: 4/3(금)">
                             <input type="text" id="inp-i${i}-hotel" class="w-full border border-blue-400 rounded p-1.5 text-[10px] mt-1 text-center bg-white font-bold text-blue-800" placeholder="숙박 호텔명">
                         </div>
-                        <div class="col-span-6"><textarea id="inp-i${i}-desc" class="w-full border border-blue-300 rounded p-1.5 text-[11px] h-24 resize-none leading-relaxed" placeholder="상세 일정 (엔터로 줄바꿈)"></textarea></div>
+                        <div class="col-span-6"><textarea id="inp-i${i}-desc" class="w-full border border-blue-300 rounded p-1.5 text-[11px] h-24 resize-none leading-relaxed" placeholder="상세 일정 (시간은 수기로 입력)"></textarea></div>
                         <div class="col-span-3"><textarea id="inp-i${i}-meal" class="w-full border border-blue-300 rounded p-1.5 text-[11px] h-24 resize-none leading-relaxed" placeholder="조:\n중:\n석:"></textarea></div>
                     </div>`;
             }
@@ -494,9 +491,9 @@
         function getAgencyLogoHtml(agency) {
             if (agency === 'jeju') {
                 return `
-                    <div class="text-right leading-tight">
-                        <div class="font-black text-[20px] text-slate-800 tracking-widest">(주)제주테마투어</div>
-                        <div class="text-[12px] text-slate-600 font-bold mt-1">문정희 010-2645-7524</div>
+                    <div class="text-right leading-tight pt-1">
+                        <div class="font-black text-[22px] text-slate-800 tracking-widest">(주)제주테마투어</div>
+                        <div class="text-[12px] text-slate-500 font-bold mt-1">담당 : 문정희 (010-2645-7524)</div>
                     </div>`;
             }
             return `<img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHfgIX70O5k6Anuo0UgALIdaG9jSga9auHu3uyz0uEirylGPAJnjN_qQbvEGMUvPqUQf_g9FMNUHRxlDcUBf4vZ3Mpy4TnA9WxbmzWYK11gt2zuy_Irl4wctNFjcjLyPo0GPXV792o_J7L9guRMuDfeC1gy7USwywjYbECZgzcsHybuGRRAXAnO1eNmP8/s320/logo.png" alt="TOURMAKER" class="h-[40px] object-contain">`;
@@ -527,7 +524,7 @@
             document.querySelectorAll('.out-agency-logo').forEach(el => el.innerHTML = logoHtml);
             document.querySelectorAll('.out-footer-text').forEach(el => el.innerHTML = footerHtml);
 
-            // 1. 일정표 렌더링
+            // 1. 일정표 렌더링 (Flex-grow로 높이 자동 배분)
             let itHtml = '';
             const visibleIt = data.itineraries.filter(item => String(item.date || '').trim() !== '');
 
@@ -535,10 +532,10 @@
                 itHtml = `<tr><td colspan="3" class="text-center py-10 text-slate-400 h-full">입력된 일정이 없습니다.</td></tr>`;
             } else {
                 visibleIt.forEach((item, idx) => {
-                    const hotelRow = item.hotel ? `<tr><td colspan="2" class="px-5 py-2 font-bold bg-blue-50 text-blue-900 border-t border-slate-300">숙소 : ${escAttr(item.hotel)}</td></tr>` : '';
+                    const hotelRow = item.hotel ? `<tr class="hotel-row"><td colspan="2" class="px-5 py-2 font-bold bg-blue-50 text-blue-900 border-t border-slate-300">숙소 : ${escAttr(item.hotel)}</td></tr>` : '';
                     const rs = item.hotel ? 2 : 1;
                     itHtml += `
-                        <tr class="${idx%2===0 ? 'bg-white' : 'print-bg-gray bg-slate-50'}">
+                        <tr class="data-row ${idx%2===0 ? 'bg-white' : 'print-bg-gray bg-slate-50'}">
                             <td rowspan="${rs}" class="text-center font-extrabold text-slate-800 text-[14px] w-[15%]">${escAttr(item.date)}</td>
                             <td class="text-left px-6 py-4 whitespace-pre-line leading-[2.0] text-[13px] text-slate-900 w-[65%]">${escAttr(item.desc)}</td>
                             <td class="text-center text-blue-900 font-bold text-[13px] whitespace-pre-line leading-relaxed w-[20%]">${escAttr(item.meal)}</td>
@@ -549,7 +546,7 @@
             }
             document.getElementById('tbody-itinerary').innerHTML = itHtml;
 
-            // 2. 산출내역 렌더링
+            // 2. 산출내역 렌더링 (엑셀 병합 완벽 구현)
             function buildTableGroup(sumLabel, items) {
                 let html = '';
                 let subTotal = 0;
@@ -562,7 +559,7 @@
                     const catSpan = getRowspan(validItems, i, 'cat');
                     const nameSpan = getRowspan(validItems, i, 'cat', 'name');
 
-                    html += `<tr class="bg-white hover:bg-slate-50 transition h-auto">`; 
+                    html += `<tr class="bg-white hover:bg-slate-50 transition">`; 
                     
                     if (i === 0 || validItems[i].cat !== validItems[i-1].cat) {
                         html += `<td rowspan="${catSpan}" class="text-center font-bold print-bg-gray bg-slate-50 text-slate-800">${escAttr(item.cat)}</td>`;
@@ -699,8 +696,6 @@
         window.onload = () => {
             renderInputGrids();
             updatePresetDropdown();
-
-            // 공유 기능이 삭제되었으므로 빌더 모드로만 동작
             setFormData(defaultData);
             calculateAndRender();
             
