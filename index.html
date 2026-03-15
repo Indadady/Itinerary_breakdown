@@ -23,7 +23,8 @@
         /* ===== 웹뷰 A4 컨테이너 설정 ===== */
         #print-container { display: flex; flex-direction: column; gap: 20px; align-items: center; }
         .a4-page {
-            width: 210mm; height: 297mm; background: white; padding: 15mm;
+            /* ★ 좌우 패딩을 15mm -> 10mm로 줄여 표의 절대적인 가로 너비를 확보함 */
+            width: 210mm; height: 297mm; background: white; padding: 12mm 10mm;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             display: flex; flex-direction: column; box-sizing: border-box;
         }
@@ -39,7 +40,7 @@
             #print-container { display: block !important; width: 100% !important; }
 
             .a4-page {
-                width: 210mm; height: 297mm; padding: 15mm; 
+                width: 210mm; height: 297mm; padding: 12mm 10mm; /* 인쇄 시에도 좌우 여백 축소 유지 */
                 box-shadow: none !important; margin: 0 auto; 
                 page-break-after: always; position: relative;
             }
@@ -103,7 +104,7 @@
     <!-- ===== 메인 레이아웃 ===== -->
     <div class="main-layout flex-1 flex flex-col lg:flex-row overflow-hidden relative">
         
-        <!-- [좌측] 데이터 입력 패널 (Flex 레이아웃 적용) -->
+        <!-- [좌측] 데이터 입력 패널 -->
         <div id="input-panel" class="w-full lg:w-[500px] flex flex-col bg-white border-r border-gray-300 no-print z-10 flex-shrink-0 h-full">
             
             <!-- 스크롤 가능한 본문 영역 -->
@@ -158,13 +159,14 @@
                     <!-- 2. 일정표 -->
                     <div>
                         <h3 class="font-bold text-blue-800 border-l-4 border-blue-800 pl-2 text-sm mb-3">2. 행사 일정표 (시간/주요일정 수기입력)</h3>
-                        <p class="text-[11px] text-slate-500 mb-2 leading-tight">※ 시간과 일정을 텍스트 박스에 자유롭게 적어주세요. 엑셀처럼 줄을 맞춰 자동 렌더링됩니다.</p>
+                        <p class="text-[11px] text-slate-500 mb-2 leading-tight">※ 시간과 일정을 자유롭게 적어주세요. 엑셀처럼 자동 렌더링됩니다.</p>
                         <div id="itinerary-inputs-container" class="space-y-3"></div>
                     </div>
 
                     <!-- 3. 항공비 -->
                     <div>
                         <h3 class="font-bold text-indigo-800 border-l-4 border-indigo-800 pl-2 text-sm mb-3">3. 산출내역 - 항공비</h3>
+                        <p class="text-[10px] text-slate-500 mb-2">※ 텍스트 입력칸에서 <span class="font-bold text-slate-800">엔터(Enter)</span>를 치면 PDF에서도 줄바꿈이 적용됩니다.</p>
                         <div id="flight-inputs-container" class="space-y-2"></div>
                         <button onclick="addFlightRow()" class="w-full mt-2 py-2 border border-dashed border-slate-300 text-slate-500 rounded text-xs font-bold hover:bg-slate-50">+ 항목 추가</button>
                     </div>
@@ -202,7 +204,6 @@
                 <!-- ====== [페이지 1] 행사 일정표 ====== -->
                 <div class="a4-page" id="page-1">
                     
-                    <!-- 헤더 -->
                     <div class="flex justify-between items-start mb-6">
                         <div class="inline-block">
                             <table class="compact-table border-t-2 border-b-2 border-slate-800 border-l border-r border-slate-300 text-[12px]">
@@ -256,7 +257,6 @@
                 <!-- ====== [페이지 2] 산출 내역서 ====== -->
                 <div class="a4-page" id="page-2">
                     
-                    <!-- 헤더 -->
                     <div class="flex justify-between items-start mb-5">
                         <div class="inline-block">
                             <table class="compact-table border-t-2 border-b-2 border-slate-800 border-l border-r border-slate-300 text-[12px]">
@@ -277,17 +277,17 @@
                         <p class="text-slate-500 font-bold mt-1 tracking-[0.2em] text-[10px] uppercase">Calculation Details</p>
                     </div>
 
-                    <!-- 산출내역 테이블 영역 -->
+                    <!-- ★ 산출내역 테이블 영역: 좌우 비율 튜닝 완료 (대분류/비고 확장) ★ -->
                     <div class="flex-1 w-full mt-2 mb-2 flex flex-col">
                         <table class="estimate-table w-full text-[11px] text-center border-t-2 border-b-2 border-slate-800">
                             <colgroup>
-                                <col width="11%"> <!-- 대분류 -->
+                                <col width="13%"> <!-- 대분류: 11% -> 13% 확장 -->
                                 <col width="15%"> <!-- 항목 -->
-                                <col width="26%"> <!-- 세부 내용 -->
-                                <col width="8%">  <!-- 수량 -->
+                                <col width="23%"> <!-- 세부 내용 (살짝 축소하여 양보) -->
+                                <col width="7%">  <!-- 수량 -->
                                 <col width="12%"> <!-- 단가 -->
-                                <col width="19%"> <!-- 총금액 -->
-                                <col width="9%">  <!-- 비고 -->
+                                <col width="16%"> <!-- 총금액 -->
+                                <col width="14%"> <!-- 비고: 9% -> 14% 대폭 확장 -->
                             </colgroup>
                             <thead>
                                 <tr class="print-bg-header bg-slate-100 text-slate-900 border-b-2 border-slate-800" style="height: 35px;">
@@ -389,7 +389,7 @@
             ]
         };
 
-        // ================= 동적 폼 생성 ================= //
+        // ================= 동적 폼 생성 (★줄바꿈textarea 반영) ================= //
         function renderInputGrids() {
             let itHtml = '';
             for(let i=0; i<5; i++) {
@@ -408,15 +408,16 @@
 
         function createRowHtml(type, i, cat, name, desc, qty, krw, note) {
             const bg = type==='f' ? 'bg-indigo-50 border-indigo-100' : (type==='l' ? 'bg-green-50 border-green-100' : 'bg-orange-50 border-orange-100');
+            // ★ 수정: 대분류, 항목, 세부내용, 비고를 textarea로 변경하여 Enter 줄바꿈(엑셀 Alt+Enter) 허용
             return `
                 <div class="slot-card ${type}-item ${bg} p-1.5 rounded border grid grid-cols-12 gap-1 items-center relative pr-6">
                     <button type="button" class="absolute right-1 top-1 text-red-400 hover:text-red-600 font-bold" onclick="this.parentElement.remove(); calculateAndRender();">✕</button>
-                    <div class="col-span-2"><input type="text" class="${type}-cat w-full border rounded p-1 text-[10px] font-bold text-slate-600 text-center" value="${cat}" placeholder="대분류"></div>
-                    <div class="col-span-2"><input type="text" class="${type}-name w-full border rounded p-1 text-[11px]" value="${name}" placeholder="중분류"></div>
-                    <div class="col-span-3"><input type="text" class="${type}-desc w-full border rounded p-1 text-[11px]" value="${desc}" placeholder="세부내용"></div>
-                    <div class="col-span-1"><input type="number" class="${type}-qty w-full border rounded p-1 text-[11px] text-center px-0" value="${qty}" placeholder="수량"></div>
-                    <div class="col-span-2"><input type="text" class="${type}-krw amount w-full border rounded p-1 text-[11px] text-right font-semibold" value="${krw}" placeholder="단가" oninput="formatCurrency(this)"></div>
-                    <div class="col-span-2"><input type="text" class="${type}-note w-full border rounded p-1 text-[10px]" value="${note}" placeholder="비고"></div>
+                    <div class="col-span-2"><textarea rows="1" class="${type}-cat w-full border rounded p-1 text-[10px] font-bold text-slate-600 text-center resize-y h-8 custom-scrollbar leading-tight" placeholder="대분류">${cat}</textarea></div>
+                    <div class="col-span-2"><textarea rows="1" class="${type}-name w-full border rounded p-1 text-[11px] resize-y h-8 custom-scrollbar leading-tight" placeholder="중분류">${name}</textarea></div>
+                    <div class="col-span-3"><textarea rows="1" class="${type}-desc w-full border rounded p-1 text-[11px] resize-y h-8 custom-scrollbar leading-tight" placeholder="세부내용">${desc}</textarea></div>
+                    <div class="col-span-1"><input type="number" class="${type}-qty w-full border rounded p-1 text-[11px] text-center px-0 h-8" value="${qty}" placeholder="수량"></div>
+                    <div class="col-span-2"><input type="text" class="${type}-krw amount w-full border rounded p-1 text-[11px] text-right font-semibold h-8" value="${krw}" placeholder="단가" oninput="formatCurrency(this)"></div>
+                    <div class="col-span-2"><textarea rows="1" class="${type}-note w-full border rounded p-1 text-[10px] resize-y h-8 custom-scrollbar leading-tight" placeholder="비고">${note}</textarea></div>
                 </div>`;
         }
 
@@ -512,12 +513,14 @@
             const data = getFormData();
             const resolvedIssueDateRate = resolveTodayFormula(data.basic.issueDateRate);
             
+            // 헤더 정보 세팅
             document.querySelectorAll('.out-clientName').forEach(el => el.innerText = data.basic.clientName);
             document.querySelectorAll('.out-docTitle').forEach(el => el.innerText = data.basic.docTitle);
             document.querySelectorAll('.out-travelDate').forEach(el => el.innerText = data.basic.travelDate);
             document.querySelectorAll('.out-paxStr').forEach(el => el.innerText = data.basic.paxStr);
             document.querySelectorAll('.out-issueDateRate').forEach(el => el.innerText = resolvedIssueDateRate);
 
+            // 로고 세팅
             const logoHtml = getAgencyLogoHtml(data.basic.agency);
             const footerHtml = getFooterHtml(data.basic.agency);
             
@@ -532,13 +535,13 @@
                 itHtml = `<tr><td colspan="3" class="text-center py-10 text-slate-400 h-full">입력된 일정이 없습니다.</td></tr>`;
             } else {
                 visibleIt.forEach((item, idx) => {
-                    const hotelRow = item.hotel ? `<tr class="hotel-row"><td colspan="2" class="px-5 py-1.5 font-bold bg-blue-50 text-blue-900 border-t border-slate-300">숙소 : ${escAttr(item.hotel)}</td></tr>` : '';
+                    const hotelRow = item.hotel ? `<tr class="hotel-row"><td colspan="2" class="px-5 font-bold bg-blue-50 text-blue-900 border-t border-slate-300">숙소 : ${escAttr(item.hotel)}</td></tr>` : '';
                     const rs = item.hotel ? 2 : 1;
                     itHtml += `
                         <tr class="data-row ${idx%2===0 ? 'bg-white' : 'print-bg-gray bg-slate-50'}">
                             <td rowspan="${rs}" class="text-center font-extrabold text-slate-800 text-[14px] w-[15%]">${escAttr(item.date)}</td>
-                            <td class="text-left px-5 py-3 whitespace-pre-line leading-[1.8] text-[14px] text-slate-900 w-[65%] font-medium">${escAttr(item.desc)}</td>
-                            <td class="text-center text-blue-900 font-bold text-[14px] whitespace-pre-line leading-relaxed w-[20%]">${escAttr(item.meal)}</td>
+                            <td class="text-left px-5 whitespace-pre-line leading-[1.8] text-[14px] text-slate-900 w-[65%] font-medium">${escAttr(item.desc)}</td>
+                            <td class="text-center text-blue-900 font-bold text-[14px] whitespace-pre-line leading-[1.8] w-[20%]">${escAttr(item.meal)}</td>
                         </tr>
                         ${hotelRow}
                     `;
@@ -546,7 +549,7 @@
             }
             document.getElementById('tbody-itinerary').innerHTML = itHtml;
 
-            // 2. 산출내역 렌더링 
+            // 2. 산출내역 렌더링 (★수정: textarea 줄바꿈 허용(whitespace-pre-line) 적용)
             function buildTableGroup(sumLabel, items) {
                 let html = '';
                 let subTotal = 0;
@@ -559,24 +562,24 @@
                     const catSpan = getRowspan(validItems, i, 'cat');
                     const nameSpan = getRowspan(validItems, i, 'cat', 'name');
 
-                    html += `<tr class="bg-white hover:bg-slate-50 transition">`; 
+                    html += `<tr class="bg-white hover:bg-slate-50 transition h-auto">`; 
                     
                     if (i === 0 || validItems[i].cat !== validItems[i-1].cat) {
-                        html += `<td rowspan="${catSpan}" class="text-center font-bold print-bg-gray bg-slate-50 text-slate-800">${escAttr(item.cat)}</td>`;
+                        html += `<td rowspan="${catSpan}" class="text-center font-bold print-bg-gray bg-slate-50 text-slate-800 whitespace-pre-line leading-[1.4]">${escAttr(item.cat)}</td>`;
                     }
                     if (i === 0 || validItems[i].cat !== validItems[i-1].cat || validItems[i].name !== validItems[i-1].name) {
-                        html += `<td rowspan="${nameSpan}" class="text-center font-medium">${escAttr(item.name)}</td>`;
+                        html += `<td rowspan="${nameSpan}" class="text-center font-medium whitespace-pre-line leading-[1.4]">${escAttr(item.name)}</td>`;
                     }
 
                     const isRed = item.note.includes('*') || item.note.includes('포함');
                     const noteStyle = isRed ? 'text-red-600 font-bold' : 'text-slate-600';
 
                     html += `
-                        <td class="text-center px-2 font-medium">${escAttr(item.desc)}</td>
+                        <td class="text-center px-2 font-medium whitespace-pre-line leading-[1.4]">${escAttr(item.desc)}</td>
                         <td class="text-center font-bold">${fmt(item.qty)}</td>
                         <td class="text-right px-2">${fmt(item.krw)}</td>
                         <td class="text-right px-2 font-extrabold text-slate-900">${fmtT(rowTotal)}</td>
-                        <td class="text-center text-[10px] ${noteStyle}">${escAttr(item.note)}</td>
+                        <td class="text-center text-[10.5px] ${noteStyle} whitespace-pre-line leading-[1.4]">${escAttr(item.note)}</td>
                     </tr>`;
                 });
 
@@ -646,7 +649,7 @@
             e.target.value = '';
         }
 
-        // ================= 템플릿 관리 ================= //
+        // ================= 템플릿 관리 (보안/안정성 개선) ================= //
         function updatePresetDropdown(filterText = '') {
             const select = document.getElementById('preset-select');
             const presets = JSON.parse(localStorage.getItem('tourmaker_presets') || '{}');
