@@ -66,9 +66,7 @@
         /* 일정표 꽉 차게 균등 배분 (Flex Table) */
         .itinerary-table { display: table; height: 100%; width: 100%; table-layout: fixed; }
         .itinerary-table tbody { height: 100%; }
-        /* 남은 높이를 각 일자별로 완벽하게 N등분 하도록 height 1% 강제 할당 */
         .itinerary-table tr.data-row { height: 1%; } 
-        /* ★ 수정: 위아래 여백(padding)을 줄여서 글자가 더 눈에 띄게 조율 */
         .itinerary-table tr.data-row td { padding-top: 8px; padding-bottom: 8px; vertical-align: middle; } 
         .itinerary-table tr.hotel-row { height: 1px; } 
         .itinerary-table tr.hotel-row td { padding-top: 6px; padding-bottom: 6px; }
@@ -110,7 +108,7 @@
             
             <!-- 스크롤 가능한 본문 영역 -->
             <div class="flex-1 overflow-y-auto p-5 custom-scrollbar pb-10">
-                <!-- 템플릿 및 백업 -->
+                <!-- 템플릿 및 파일 관리 -->
                 <div class="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-lg">
                     <div class="flex justify-between items-center mb-3">
                         <span class="font-bold text-sm text-slate-800">💾 견적 템플릿 보관함</span>
@@ -128,9 +126,9 @@
                     </div>
                     <div class="flex justify-end gap-2">
                         <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importData(event)">
-                        <button onclick="document.getElementById('import-file').click()" class="text-[11px] font-bold text-amber-600 hover:underline">📂 파일 복구</button>
+                        <button onclick="document.getElementById('import-file').click()" class="text-[11px] font-bold text-amber-600 hover:underline">📂 파일 불러오기</button>
                         <span class="text-gray-300">|</span>
-                        <button onclick="exportData()" class="text-[11px] font-bold text-emerald-600 hover:underline">💾 파일 백업</button>
+                        <button onclick="exportData()" class="text-[11px] font-bold text-emerald-600 hover:underline">💾 파일 저장</button>
                     </div>
                 </div>
 
@@ -204,7 +202,7 @@
                 <!-- ====== [페이지 1] 행사 일정표 ====== -->
                 <div class="a4-page" id="page-1">
                     
-                    <!-- 헤더: 여백 없애고 컴팩트하게 좌측 정렬 -->
+                    <!-- 헤더 -->
                     <div class="flex justify-between items-start mb-6">
                         <div class="inline-block">
                             <table class="compact-table border-t-2 border-b-2 border-slate-800 border-l border-r border-slate-300 text-[12px]">
@@ -258,7 +256,7 @@
                 <!-- ====== [페이지 2] 산출 내역서 ====== -->
                 <div class="a4-page" id="page-2">
                     
-                    <!-- 헤더: 컴팩트 -->
+                    <!-- 헤더 -->
                     <div class="flex justify-between items-start mb-5">
                         <div class="inline-block">
                             <table class="compact-table border-t-2 border-b-2 border-slate-800 border-l border-r border-slate-300 text-[12px]">
@@ -514,21 +512,19 @@
             const data = getFormData();
             const resolvedIssueDateRate = resolveTodayFormula(data.basic.issueDateRate);
             
-            // 헤더 정보 세팅
             document.querySelectorAll('.out-clientName').forEach(el => el.innerText = data.basic.clientName);
             document.querySelectorAll('.out-docTitle').forEach(el => el.innerText = data.basic.docTitle);
             document.querySelectorAll('.out-travelDate').forEach(el => el.innerText = data.basic.travelDate);
             document.querySelectorAll('.out-paxStr').forEach(el => el.innerText = data.basic.paxStr);
             document.querySelectorAll('.out-issueDateRate').forEach(el => el.innerText = resolvedIssueDateRate);
 
-            // 로고 세팅
             const logoHtml = getAgencyLogoHtml(data.basic.agency);
             const footerHtml = getFooterHtml(data.basic.agency);
             
             document.querySelectorAll('.out-agency-logo').forEach(el => el.innerHTML = logoHtml);
             document.querySelectorAll('.out-footer-text').forEach(el => el.innerHTML = footerHtml);
 
-            // 1. 일정표 렌더링 (★수정: 글자 크기 증가, 여백 축소)
+            // 1. 일정표 렌더링
             let itHtml = '';
             const visibleIt = data.itineraries.filter(item => String(item.date || '').trim() !== '');
 
@@ -550,7 +546,7 @@
             }
             document.getElementById('tbody-itinerary').innerHTML = itHtml;
 
-            // 2. 산출내역 렌더링 (엑셀 병합 완벽 구현)
+            // 2. 산출내역 렌더링 
             function buildTableGroup(sumLabel, items) {
                 let html = '';
                 let subTotal = 0;
@@ -625,7 +621,7 @@
         // ================= 백업 및 복구 로직 ================= //
         function exportData() {
             const data = localStorage.getItem('tourmaker_presets');
-            if (!data || data === '{}') return alert('백업할 템플릿이 없습니다. 먼저 저장해주세요.');
+            if (!data || data === '{}') return alert('저장할 데이터가 없습니다. 먼저 템플릿을 만들어주세요.');
             const blob = new Blob([data], {type: 'application/json'});
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a'); a.href = url;
@@ -643,21 +639,20 @@
                     const currentData = JSON.parse(localStorage.getItem('tourmaker_presets') || '{}');
                     localStorage.setItem('tourmaker_presets', JSON.stringify({ ...currentData, ...json }));
                     updatePresetDropdown();
-                    alert('데이터가 성공적으로 병합되었습니다.');
-                } catch(err) { alert('잘못된 백업 파일 형식입니다.'); }
+                    alert('파일 데이터를 성공적으로 불러왔습니다.');
+                } catch(err) { alert('불러올 수 없는 파일 형식입니다.'); }
             };
             reader.readAsText(file);
             e.target.value = '';
         }
 
-        // ================= 템플릿 관리 (GPT 보안이슈 개선) ================= //
+        // ================= 템플릿 관리 ================= //
         function updatePresetDropdown(filterText = '') {
             const select = document.getElementById('preset-select');
             const presets = JSON.parse(localStorage.getItem('tourmaker_presets') || '{}');
             select.innerHTML = '<option value="">저장된 템플릿 선택...</option>';
             Object.keys(presets).sort().forEach(key => {
                 if (key.toLowerCase().includes(filterText.toLowerCase())) {
-                    // ★수정: insertAdjacentHTML 대신 안전한 DOM 노드 추가 방식 사용
                     const opt = document.createElement('option');
                     opt.value = key;
                     opt.textContent = key;
@@ -695,22 +690,19 @@
         }
         function clearForm() {
             if(!confirm('모두 지우시겠습니까?')) return;
-            // ★ 수정: 존재하지 않던 buildInitialInputs() 에러 제거 및 초기 뼈대만 생성
             setFormData({ basic: { issueDateRate: '=today() / 원화결제' }, itineraries:[], flights:[], locals:[], domestics:[] });
             calculateAndRender();
         }
 
-        // ================= 인쇄 제어 (GPT 피드백: 필수값 검증 도입) ================= //
+        // ================= 인쇄 제어 (필수값 검증) ================= //
         function handlePrint() {
             const data = getFormData();
             
-            // 1. 필수값 체크
             if (!data.basic.clientName.trim() || !data.basic.docTitle.trim()) {
                 alert('⚠️ 고객명(기관명)과 행사명은 필수 입력 항목입니다.');
                 return;
             }
             
-            // 2. 내용 유무 체크
             const hasItinerary = data.itineraries.some(i => i.date.trim() !== '');
             const hasEstimate = data.flights.length > 0 || data.locals.length > 0 || data.domestics.length > 0;
             
@@ -718,8 +710,6 @@
                 alert('⚠️ 일정이나 산출내역을 최소 1개 이상 입력해야 출력할 수 있습니다.');
                 return;
             }
-
-            // 모든 검증 통과 시 인쇄 실행
             window.print();
         }
 
