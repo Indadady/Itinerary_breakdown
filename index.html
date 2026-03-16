@@ -22,16 +22,14 @@
         
         /* ===== 웹뷰 A4 컨테이너 설정 ===== */
         #print-container { display: flex; flex-direction: column; gap: 20px; align-items: center; width: 100%; }
+        
+        /* [개선] 강제 높이값을 제거하고 유연하게 늘어나도록 변경 (웹 뷰 겹침 현상 원천 차단) */
         .a4-page {
-            width: 210mm; background: white; padding: 12mm 10mm;
+            width: 210mm; min-height: 297mm; height: auto; background: white; padding: 12mm 10mm;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             display: flex; flex-direction: column; box-sizing: border-box;
             flex: none;
         }
-
-        /* [개선] 1페이지(일정표)는 무조건 A4 세로 높이에 꽉 차게 고정, 2페이지는 유동적 늘어남 허용 */
-        #page-1 { height: 297mm; min-height: 297mm; }
-        #page-2 { height: max-content; min-height: 297mm; }
 
         /* 모바일 및 태블릿 화면 A4 뷰어 자동 축소 최적화 */
         @media screen and (max-width: 1024px) { .a4-page { zoom: 0.8; } }
@@ -52,14 +50,12 @@
             #right-panel { display: block !important; width: 100% !important; padding: 0 !important; background: white !important; height: auto !important; overflow: visible !important; }
             #print-container { display: block !important; width: 100% !important; }
 
+            /* [개선] 인쇄 시 무조건 A4 사이즈 고정 & 내용이 넘쳐서 3페이지 생성되는 것 방지 */
             .a4-page {
-                width: 210mm; padding: 12mm 10mm; 
-                box-shadow: none !important; margin: 0 auto; 
-                page-break-after: always; position: relative;
+                width: 210mm; height: 297mm !important; max-height: 297mm !important;
+                padding: 12mm 10mm; box-shadow: none !important; margin: 0 auto; 
+                page-break-after: always; page-break-inside: avoid; overflow: hidden !important; 
             }
-            #page-1 { height: 297mm !important; }
-            #page-2 { height: auto !important; min-height: 297mm !important; }
-
             .a4-page:last-child { page-break-after: auto; }
 
             table { border-collapse: collapse !important; width: 100% !important; }
@@ -72,7 +68,7 @@
 
         /* 테이블 기본 세팅 */
         table { border-collapse: collapse; width: 100%; table-layout: fixed; }
-        th, td { border: 1px solid #94a3b8; padding: 6px 8px; font-size: 12px; vertical-align: middle; word-break: break-word; }
+        th, td { border: 1px solid #94a3b8; font-size: 12px; vertical-align: middle; word-break: break-word; }
         th { text-align: center; font-weight: 700; color: #0f172a; }
         
         .compact-table { table-layout: auto; width: auto; min-width: 50%; }
@@ -117,7 +113,7 @@
     <!-- ===== 메인 레이아웃 ===== -->
     <div class="main-layout flex-1 flex flex-col lg:flex-row overflow-visible lg:overflow-hidden relative w-full">
         
-        <!-- [좌측] 데이터 입력 패널 (모바일 100% 스크롤, 데스크탑 500px 고정) -->
+        <!-- [좌측] 데이터 입력 패널 -->
         <div id="input-panel" class="w-full lg:w-[500px] flex flex-col bg-white border-r border-gray-300 no-print z-10 flex-shrink-0 lg:h-full">
             
             <div class="flex-1 overflow-visible lg:overflow-y-auto p-4 md:p-5 custom-scrollbar pb-10">
@@ -200,7 +196,7 @@
                 </div>
             </div>
             
-            <!-- 하단 요약 바 (모바일에서는 화면 최하단 고정, 데스크탑에서는 좌측 패널 최하단) -->
+            <!-- 하단 요약 바 -->
             <div class="fixed bottom-0 left-0 w-full lg:static lg:w-full bg-slate-900 text-white p-3 md:p-4 flex justify-between items-center shadow-[0_-4px_10px_rgba(0,0,0,0.3)] z-50 lg:z-auto flex-shrink-0">
                 <span class="text-xs md:text-sm font-bold text-slate-300">총 견적 금액 (KRW)</span>
                 <span class="text-[18px] md:text-[22px] font-black text-amber-400" id="live-total-amount">0</span>
@@ -213,7 +209,7 @@
                 
                 <!-- ====== [페이지 1] 행사 일정표 ====== -->
                 <div class="a4-page" id="page-1">
-                    <div class="mb-4">
+                    <div class="mb-4 flex-shrink-0">
                         <table class="compact-table border-t-2 border-b-2 border-slate-800 border-l border-r border-slate-300 text-[12px] w-full text-left">
                             <colgroup>
                                 <col width="12%"><col width="38%">
@@ -240,7 +236,7 @@
                     </div>
 
                     <!-- 타이틀 및 로고 레이아웃 -->
-                    <div class="flex justify-between items-end mb-3 mt-1 border-b-2 border-slate-800 pb-2">
+                    <div class="flex justify-between items-end mb-3 mt-1 border-b-2 border-slate-800 pb-2 flex-shrink-0">
                         <div class="w-[120px]"></div> <!-- 중앙 정렬을 위한 여백 -->
                         <div class="text-center flex-1">
                             <h2 class="text-[26px] font-black text-slate-900 tracking-widest leading-none mb-1">상세 일정표</h2>
@@ -249,14 +245,13 @@
                         <div class="w-[120px] text-right out-agency-logo-side"></div>
                     </div>
 
-                    <!-- [개선] 남은 공간을 완벽히 채우는 Flex-1 & H-full 레이아웃 -->
                     <div class="w-full flex-1 flex flex-col mb-3">
-                        <table class="itinerary-table w-full h-full border-t-2 border-b-2 border-slate-800">
+                        <table class="itinerary-table w-full border-t-2 border-b-2 border-slate-800">
                             <colgroup>
                                 <col width="15%"><col width="65%"><col width="20%">
                             </colgroup>
-                            <thead>
-                                <tr id="thead-itinerary-row" class="print-bg-header bg-slate-100 text-slate-900 border-b-2 border-slate-800" style="height: 35px;">
+                            <thead id="thead-itinerary">
+                                <tr class="print-bg-header bg-slate-100 text-slate-900 border-b-2 border-slate-800">
                                     <th>일자</th><th>주요 일정</th><th>식사</th>
                                 </tr>
                             </thead>
@@ -275,7 +270,7 @@
                 <div class="a4-page" id="page-2">
                     
                     <!-- 타이틀 및 로고 레이아웃 -->
-                    <div class="flex justify-between items-end mb-4 mt-2 border-b-2 border-slate-800 pb-2">
+                    <div class="flex justify-between items-end mb-4 mt-2 border-b-2 border-slate-800 pb-2 flex-shrink-0">
                         <div class="w-[120px]"></div>
                         <div class="text-center flex-1">
                             <h2 class="text-[26px] font-black text-slate-900 tracking-widest leading-none mb-1">가격 산출 내역서</h2>
@@ -284,14 +279,14 @@
                         <div class="w-[120px] text-right out-agency-logo-side"></div>
                     </div>
 
-                    <div class="w-full mb-3 flex flex-col">
-                        <table class="estimate-table w-full text-[12.5px] text-center border-t border-b-2 border-slate-800 leading-snug">
+                    <div class="w-full flex-1 flex flex-col mb-3">
+                        <table class="estimate-table w-full text-center border-t border-b-2 border-slate-800 leading-snug">
                             <colgroup>
                                 <col width="11%"><col width="13%"><col width="28%">
                                 <col width="6%"><col width="13%"><col width="15%"><col width="14%">
                             </colgroup>
-                            <thead>
-                                <tr class="print-bg-header bg-slate-100 text-slate-900 border-b-2 border-slate-800 text-[13px]" style="height: 36px;">
+                            <thead id="thead-estimate">
+                                <tr class="print-bg-header bg-slate-100 text-slate-900 border-b-2 border-slate-800">
                                     <th>대분류</th><th>항목</th><th>세부 내용</th><th>수량</th>
                                     <th>단가(원)</th><th>총금액(원)</th><th>비고</th>
                                 </tr>
@@ -504,7 +499,6 @@
             "감귤박물관": "감귤의 역사와 종류를 배우고 다양한 감귤 체험을 할 수 있는 공립 박물관"
         };
 
-        // 학단/일반 문서 포맷용 (괄호/부가설명이 붙어도 핵심키워드만 있으면 인식하도록 정규식 개선)
         function enrichItinerary(descText) {
             let enriched = descText.replace(/\n\s*\n/g, '\n');
             for (const [key, val] of Object.entries(poiDB)) {
@@ -521,7 +515,6 @@
             return enriched;
         }
 
-        // 워드 다운로드 포맷용
         function enrichItineraryForDoc(descText) {
             let enriched = descText.replace(/\n\s*\n/g, '\n');
             for (const [key, val] of Object.entries(poiDB)) {
@@ -538,7 +531,6 @@
             return enriched;
         }
 
-        // ================= DB 기반 설명 즉시 삽입 기능 (수동 트리거) ================= //
         function applyPOIDesc(index) {
             const descInput = document.getElementById(`inp-i${index}-desc`);
             let text = descInput.value;
@@ -777,8 +769,7 @@
             if (agency === 'jeju') {
                 return `<div class="text-right leading-tight pt-1"><div class="font-black text-[18px] text-slate-800 tracking-widest">(주)제주테마투어</div><div class="text-[11px] text-slate-500 font-bold mt-1">담당 : 문정희 (010-2645-7524)</div></div>`;
             }
-            // 기존 선호 투어메이커 로고 교체 및 크기 소폭 증대
-            return `<img src="https://blogger.googleusercontent.com/img/a/AVvXsEitI-Z-hD82keOJ1AqHw-VTZjpw2U-O5UjtV9h3zblyG0wjsVfBWe9X9o0Q_Spctrt7krkd9qXO0xKTmGJLw4gyMZrRqpshKMFttnyx6OcC8-IGz3XLUZpGQOnRqVdol8jz5HuoDLqsEifnVRhcjUJHm13Sz8JrX9aPswMNUwZPvGtJEnQjhc2PiXlo-B8" alt="TOURMAKER" class="h-[40px] object-contain inline-block">`;
+            return `<img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHfgIX70O5k6Anuo0UgALIdaG9jSga9auHu3uyz0uEirylGPAJnjN_qQbvEGMUvPqUQf_g9FMNUHRxlDcUBf4vZ3Mpy4TnA9WxbmzWYK11gt2zuy_Irl4wctNFjcjLyPo0GPXV792o_J7L9guRMuDfeC1gy7USwywjYbECZgzcsHybuGRRAXAnO1eNmP8/s320/logo.png" alt="TOURMAKER" class="h-[45px] object-contain inline-block">`;
         }
 
         function calculateAndRender() {
@@ -798,7 +789,7 @@
                 : `[System Powered by TOURMAKER] 본 문서는 <a href="http://tourmaker.kr" target="_blank" class="font-bold text-slate-800 hover:underline">투어메이커</a>의 기획과 트래블 테크 기술 제휴로 제작되었습니다.`;
             document.querySelectorAll('.out-footer-text').forEach(el => el.innerHTML = footerHtml);
 
-            // 1. 일정표 렌더링 (동적 높이와 폰트 스케일링 완벽 대응)
+            // ================= 1. 일정표 동적 자동완성 ================= 
             const visibleIt = data.itineraries.filter(item => String(item.date || '').trim() !== '');
             let itHtml = '';
             
@@ -810,20 +801,20 @@
             let lineHeightClass = "leading-[1.6]";
             
             if (visibleIt.length <= 2) {
-                fontClass = "text-[18px]"; pyClass = "py-8";     
+                fontClass = "text-[17px]"; pyClass = "py-14"; 
                 headerFontClass = "text-[16px]"; hotelFontClass = "text-[15px]"; hotelPyClass = "py-4"; lineHeightClass = "leading-[2.0]";
             } else if (visibleIt.length === 3) {
-                fontClass = "text-[16px]"; pyClass = "py-6";     
+                fontClass = "text-[15.5px]"; pyClass = "py-8"; 
                 headerFontClass = "text-[15px]"; hotelFontClass = "text-[14px]"; hotelPyClass = "py-3"; lineHeightClass = "leading-[1.8]";
             } else if (visibleIt.length === 4) {
-                fontClass = "text-[14.5px]"; pyClass = "py-4";     
+                fontClass = "text-[14px]"; pyClass = "py-5"; 
                 headerFontClass = "text-[14px]"; hotelFontClass = "text-[13px]"; hotelPyClass = "py-2"; lineHeightClass = "leading-[1.7]";
             } else if (visibleIt.length >= 5) {
-                fontClass = "text-[12.5px]"; pyClass = "py-2.5";     
+                fontClass = "text-[12.5px]"; pyClass = "py-2"; 
                 headerFontClass = "text-[13px]"; hotelFontClass = "text-[12px]"; hotelPyClass = "py-1.5"; lineHeightClass = "leading-[1.5]";
             }
 
-            const theadRow = document.getElementById('thead-itinerary-row');
+            const theadRow = document.querySelector('#thead-itinerary tr');
             if (theadRow) {
                 theadRow.className = `print-bg-header bg-slate-100 text-slate-900 border-b-2 border-slate-800 ${headerFontClass}`;
             }
@@ -838,7 +829,6 @@
                     const enrichedDesc = enrichItinerary(escAttr(item.desc));
                     const formattedMeal = item.meal.split('\n').map(line => `<div style="padding-left: 1.4em; text-indent: -1.4em;">${escAttr(line)}</div>`).join('');
 
-                    // align-middle 클래스를 통해 남는 상하 여백을 완벽하게 중간 정렬시킵니다
                     itHtml += `
                         <tr class="data-row ${idx%2===0 ? 'bg-white' : 'print-bg-gray bg-slate-50'}">
                             <td rowspan="${rs}" class="text-center font-extrabold text-slate-800 border-r border-slate-300 ${fontClass} ${pyClass} align-middle">${escAttr(item.date)}</td>
@@ -851,54 +841,81 @@
             }
             document.getElementById('tbody-itinerary').innerHTML = itHtml;
 
-            // 2. 산출내역 렌더링 
+            // ================= 2. 산출내역 동적 스케일링 (완화된 알고리즘 & 합계칸 2개 병합) ================= 
+            const validFlights = data.flights.filter(i => i.cat.trim() || i.name.trim() || i.desc.trim());
+            const validLocals = data.locals.filter(i => i.cat.trim() || i.name.trim() || i.desc.trim());
+            const validDomestics = data.domestics.filter(i => i.cat.trim() || i.name.trim() || i.desc.trim());
+            const totalEstimateItems = validFlights.length + validLocals.length + validDomestics.length;
+
+            let estFontClass = "text-[12.5px]";
+            let estPyClass = "py-1.5";
+            let estHeadClass = "text-[13px]";
+            let estNoteClass = "text-[10.5px]";
+
+            // [수정] 스케일링 기준 완화 (28항목 정도면 py-1.5 폰트 12.5px 유지하여 2~3줄 공백 남게 함)
+            if (totalEstimateItems >= 36) {
+                estFontClass = "text-[10px]"; estPyClass = "py-0.5"; estHeadClass = "text-[11px]"; estNoteClass = "text-[9px]";
+            } else if (totalEstimateItems >= 30) {
+                estFontClass = "text-[11.5px]"; estPyClass = "py-1"; estHeadClass = "text-[12px]"; estNoteClass = "text-[10px]";
+            } else if (totalEstimateItems >= 24) {
+                estFontClass = "text-[12.5px]"; estPyClass = "py-1.5"; estHeadClass = "text-[13px]"; estNoteClass = "text-[11px]";
+            } else if (totalEstimateItems >= 18) {
+                estFontClass = "text-[13.5px]"; estPyClass = "py-2.5"; estHeadClass = "text-[14px]"; estNoteClass = "text-[12px]";
+            } else {
+                estFontClass = "text-[15px]"; estPyClass = "py-4"; estHeadClass = "text-[15.5px]"; estNoteClass = "text-[13px]";
+            }
+
+            const theadEstRow = document.querySelector('#thead-estimate tr');
+            if (theadEstRow) {
+                theadEstRow.className = `print-bg-header bg-slate-100 text-slate-900 border-b-2 border-slate-800 ${estHeadClass}`;
+            }
+
             function buildTableGroup(sumLabel, items) {
                 let html = '';
                 let subTotal = 0;
-                const validItems = items.filter(i => i.cat.trim() || i.name.trim() || i.desc.trim());
                 
-                validItems.forEach((item, i) => {
+                items.forEach((item, i) => {
                     const rowTotal = item.qty * item.krw;
                     subTotal += rowTotal;
-                    const catSpan = getRowspan(validItems, i, 'cat');
-                    const nameSpan = getRowspan(validItems, i, 'cat', 'name');
-                    const noteSpan = getRowspan(validItems, i, 'cat', 'name', 'note');
+                    const catSpan = getRowspan(items, i, 'cat');
+                    const nameSpan = getRowspan(items, i, 'cat', 'name');
+                    const noteSpan = getRowspan(items, i, 'cat', 'name', 'note');
 
-                    html += `<tr class="bg-white hover:bg-slate-50 transition h-auto">`; 
-                    if (i === 0 || validItems[i].cat !== validItems[i-1].cat) {
-                        html += `<td rowspan="${catSpan}" class="text-center font-bold print-bg-gray bg-slate-50 text-slate-800 whitespace-pre-line leading-snug py-1.5">${escAttr(item.cat)}</td>`;
+                    html += `<tr class="bg-white hover:bg-slate-50 transition h-auto ${estFontClass}">`; 
+                    if (i === 0 || items[i].cat !== items[i-1].cat) {
+                        html += `<td rowspan="${catSpan}" class="text-center font-bold print-bg-gray bg-slate-50 text-slate-800 whitespace-pre-line leading-snug ${estPyClass}">${escAttr(item.cat)}</td>`;
                     }
-                    if (i === 0 || validItems[i].cat !== validItems[i-1].cat || validItems[i].name !== validItems[i-1].name) {
-                        html += `<td rowspan="${nameSpan}" class="text-center font-medium whitespace-pre-line leading-snug py-1.5 px-1">${escAttr(item.name)}</td>`;
+                    if (i === 0 || items[i].cat !== items[i-1].cat || items[i].name !== items[i-1].name) {
+                        html += `<td rowspan="${nameSpan}" class="text-center font-medium whitespace-pre-line leading-snug ${estPyClass} px-1">${escAttr(item.name)}</td>`;
                     }
                     const noteStyle = (item.note.includes('*') || item.note.includes('포함')) ? 'text-red-600 font-bold' : 'text-slate-600';
 
                     html += `
-                        <td class="text-left px-2 py-1.5 font-medium whitespace-pre-line leading-snug">${escAttr(item.desc)}</td>
-                        <td class="text-center font-bold py-1.5">${fmt(item.qty)}</td>
-                        <td class="text-right px-1.5 py-1.5">${fmt(item.krw)}</td>
-                        <td class="text-right px-1.5 py-1.5 font-extrabold text-slate-900 whitespace-nowrap">${fmtT(rowTotal)}</td>
+                        <td class="text-left px-2 font-medium whitespace-pre-line leading-snug ${estPyClass}">${escAttr(item.desc)}</td>
+                        <td class="text-center font-bold ${estPyClass}">${fmt(item.qty)}</td>
+                        <td class="text-right px-1.5 ${estPyClass}">${fmt(item.krw)}</td>
+                        <td class="text-right px-1.5 font-extrabold text-slate-900 whitespace-nowrap ${estPyClass}">${fmtT(rowTotal)}</td>
                     `;
-                    if (i === 0 || validItems[i].cat !== validItems[i-1].cat || validItems[i].name !== validItems[i-1].name || validItems[i].note !== validItems[i-1].note) {
-                        html += `<td rowspan="${noteSpan}" class="text-center text-[10.5px] ${noteStyle} whitespace-pre-line leading-snug py-1.5 px-1 tracking-tighter">${escAttr(item.note)}</td>`;
+                    if (i === 0 || items[i].cat !== items[i-1].cat || items[i].name !== items[i-1].name || items[i].note !== items[i-1].note) {
+                        html += `<td rowspan="${noteSpan}" class="text-center ${noteStyle} whitespace-pre-line leading-snug ${estPyClass} px-1 tracking-tighter ${estNoteClass}">${escAttr(item.note)}</td>`;
                     }
                     html += `</tr>`;
                 });
 
-                if(validItems.length > 0) {
+                // [수정] 합계 금액 셀 너비 확보를 위해 colspan="2" 병합 적용!
+                if(items.length > 0) {
                     html += `
-                    <tr class="print-bg-yellow bg-yellow-50 font-bold border-b-2 border-slate-400 text-[12.5px]" style="height: 32px;">
-                        <td colspan="5" class="text-center align-middle">${sumLabel}</td>
-                        <td class="text-right px-2 text-slate-900 align-middle whitespace-nowrap">${fmtT(subTotal)}</td>
-                        <td class="print-bg-yellow bg-yellow-50"></td>
+                    <tr class="print-bg-yellow bg-yellow-50 font-bold border-b-2 border-slate-400 ${estFontClass}">
+                        <td colspan="5" class="text-center align-middle ${estPyClass}">${sumLabel}</td>
+                        <td colspan="2" class="text-center px-2 text-slate-900 align-middle whitespace-nowrap ${estPyClass}">${fmtT(subTotal)} 원</td>
                     </tr>`;
                 }
                 return { html, subTotal };
             }
 
-            const fRes = buildTableGroup("(1) 합 계 - 항 공", data.flights);
-            const lRes = buildTableGroup("(2) 합 계 - 제 주 (현 지)", data.locals);
-            const dRes = buildTableGroup("(3) 합 계 - 국 내 기 타", data.domestics);
+            const fRes = buildTableGroup("(1) 합 계 - 항 공", validFlights);
+            const lRes = buildTableGroup("(2) 합 계 - 제 주 (현 지)", validLocals);
+            const dRes = buildTableGroup("(3) 합 계 - 국 내 기 타", validDomestics);
 
             let estHtml = fRes.html + lRes.html + dRes.html;
             if(!estHtml) estHtml = `<tr><td colspan="7" class="text-center py-10 text-slate-400">입력된 산출 내역이 없습니다.</td></tr>`;
@@ -906,16 +923,15 @@
             const gTotal = fRes.subTotal + lRes.subTotal + dRes.subTotal;
             const pureTotal = lRes.subTotal + dRes.subTotal;
 
+            // [수정] 전체 합계 금액 셀 2칸 병합 (colspan="2")
             estHtml += `
-                <tr class="print-bg-header bg-slate-100 font-extrabold border-t-2 border-slate-800" style="height: 38px;">
-                    <td colspan="5" class="text-center align-middle text-[13.5px] whitespace-nowrap">(1)+(2)+(3) 전 체 합 계 금 액</td>
-                    <td class="text-right px-2 text-[15px] align-middle text-blue-800 tracking-tight whitespace-nowrap">₩ ${fmtT(gTotal)}</td>
-                    <td class="print-bg-header bg-slate-100"></td>
+                <tr class="print-bg-header bg-slate-100 font-extrabold border-t-2 border-slate-800">
+                    <td colspan="5" class="text-center align-middle whitespace-nowrap ${estHeadClass} ${estPyClass}">(1)+(2)+(3) 전 체 합 계 금 액</td>
+                    <td colspan="2" class="text-center px-2 align-middle text-blue-800 tracking-tight whitespace-nowrap text-[1.1em] ${estPyClass}">₩ ${fmtT(gTotal)}</td>
                 </tr>
-                <tr class="print-bg-header bg-slate-100 font-extrabold border-b-2 border-slate-800" style="height: 36px;">
-                    <td colspan="5" class="text-center align-middle text-slate-600 text-[12px] whitespace-nowrap">(2)+(3) 행사 비용 합계 <span class="font-normal text-[10px] text-slate-400 ml-1">(항공료 제외)</span></td>
-                    <td class="text-right px-2 text-[14px] text-slate-700 align-middle tracking-tight whitespace-nowrap">₩ ${fmtT(pureTotal)}</td>
-                    <td class="print-bg-header bg-slate-100"></td>
+                <tr class="print-bg-header bg-slate-100 font-extrabold border-b-2 border-slate-800">
+                    <td colspan="5" class="text-center align-middle text-slate-600 whitespace-nowrap ${estFontClass} ${estPyClass}">(2)+(3) 행사 비용 합계 <span class="font-normal text-slate-400 ml-1 ${estNoteClass}">(항공료 제외)</span></td>
+                    <td colspan="2" class="text-center px-2 text-slate-700 align-middle tracking-tight whitespace-nowrap ${estHeadClass} ${estPyClass}">₩ ${fmtT(pureTotal)}</td>
                 </tr>
             `;
 
@@ -928,10 +944,9 @@
             const data = getFormData();
             if(!data.basic.clientName) return alert('고객명(기관명)을 먼저 입력해주세요.');
 
-            const logoImageSrc = "https://blogger.googleusercontent.com/img/a/AVvXsEitI-Z-hD82keOJ1AqHw-VTZjpw2U-O5UjtV9h3zblyG0wjsVfBWe9X9o0Q_Spctrt7krkd9qXO0xKTmGJLw4gyMZrRqpshKMFttnyx6OcC8-IGz3XLUZpGQOnRqVdol8jz5HuoDLqsEifnVRhcjUJHm13Sz8JrX9aPswMNUwZPvGtJEnQjhc2PiXlo-B8";
+            const logoImageSrc = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHfgIX70O5k6Anuo0UgALIdaG9jSga9auHu3uyz0uEirylGPAJnjN_qQbvEGMUvPqUQf_g9FMNUHRxlDcUBf4vZ3Mpy4TnA9WxbmzWYK11gt2zuy_Irl4wctNFjcjLyPo0GPXV792o_J7L9guRMuDfeC1gy7USwywjYbECZgzcsHybuGRRAXAnO1eNmP8/s320/logo.png";
             let topHeaderHtml = '';
             
-            // 로고 위치를 표와 맞추기 위한 테이블 구조
             if (data.basic.agency === 'jeju') {
                 topHeaderHtml = `
                 <table width="100%" style="margin-bottom: 10px;">
@@ -972,7 +987,6 @@
                 <body style="font-family: 'Malgun Gothic', 'Dotum', sans-serif;">
             `;
             
-            // 페이지 1번:
             let htmlBody = `
                 <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%; margin-bottom: 20px; text-align: left; font-size: 13px; border-color: #333;">
                     <tr>
@@ -994,18 +1008,17 @@
                 ${topHeaderHtml}
             `;
 
-            // 워드 문서 내에서도 일수에 따라 여백과 글자크기를 늘려 빈 공간이 없어보이게 꽉 채우는 로직
             const visibleIt = data.itineraries.filter(item => String(item.date || '').trim() !== '');
-            let wordCellPadding = 8;
+            let wordItinPadding = 8;
             let wordFontSize = 13;
             let wordLineHeight = 1.5;
             
-            if (visibleIt.length <= 2) { wordCellPadding = 25; wordFontSize = 16; wordLineHeight = 2.0; }
-            else if (visibleIt.length === 3) { wordCellPadding = 18; wordFontSize = 15; wordLineHeight = 1.8; }
-            else if (visibleIt.length === 4) { wordCellPadding = 12; wordFontSize = 14; wordLineHeight = 1.6; }
+            if (visibleIt.length <= 2) { wordItinPadding = 25; wordFontSize = 16; wordLineHeight = 2.0; }
+            else if (visibleIt.length === 3) { wordItinPadding = 18; wordFontSize = 15; wordLineHeight = 1.8; }
+            else if (visibleIt.length === 4) { wordItinPadding = 12; wordFontSize = 14; wordLineHeight = 1.6; }
 
             htmlBody += `
-                <table border="1" cellpadding="${wordCellPadding}" cellspacing="0" style="border-collapse: collapse; width: 100%; margin-bottom: 30px; text-align: center; font-size: ${wordFontSize}px; border-color: #333;">
+                <table border="1" cellpadding="${wordItinPadding}" cellspacing="0" style="border-collapse: collapse; width: 100%; margin-bottom: 30px; text-align: center; font-size: ${wordFontSize}px; border-color: #333;">
                     <tr>
                         <th bgcolor="#f2f2f2" width="15%">일자</th>
                         <th bgcolor="#f2f2f2" width="65%">주요 일정</th>
@@ -1032,12 +1045,23 @@
             });
             htmlBody += `</table><br style="page-break-before: always; clear: both;" />`; 
 
-            // 페이지 2번
+            const allItems = [...data.flights, ...data.locals, ...data.domestics].filter(i => i.cat.trim() || i.name.trim() || i.desc.trim());
+            const totalEstimateItems = allItems.length;
+            
+            let wordEstFont = 12;
+            let wordEstPad = 8;
+            // 워드 역시 기준점 완화 적용 (2~3줄 공백 남기기)
+            if (totalEstimateItems >= 36) { wordEstFont = 10; wordEstPad = 3; }
+            else if (totalEstimateItems >= 30) { wordEstFont = 11.5; wordEstPad = 5; }
+            else if (totalEstimateItems >= 24) { wordEstFont = 12.5; wordEstPad = 7; }
+            else if (totalEstimateItems >= 18) { wordEstFont = 13.5; wordEstPad = 10; }
+            else { wordEstFont = 15; wordEstPad = 14; }
+
             const topHeaderHtmlPage2 = topHeaderHtml.replace("상세 일정표", "가격 산출 내역서").replace("TOUR ITINERARY", "CALCULATION DETAILS");
             htmlBody += `
                 ${topHeaderHtmlPage2}
                 
-                <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; margin-bottom: 30px; text-align: center; font-size: 12px; border-color: #333;">
+                <table border="1" cellpadding="${wordEstPad}" cellspacing="0" style="border-collapse: collapse; width: 100%; margin-bottom: 30px; text-align: center; font-size: ${wordEstFont}px; border-color: #333;">
                     <tr>
                         <th bgcolor="#f2f2f2" width="11%">대분류</th>
                         <th bgcolor="#f2f2f2" width="13%">항목</th>
@@ -1050,7 +1074,6 @@
             `;
 
             let grandTotal = 0;
-            const allItems = [...data.flights, ...data.locals, ...data.domestics].filter(i => i.cat.trim() || i.name.trim() || i.desc.trim());
             allItems.forEach((item, i) => {
                 const total = item.qty * item.krw;
                 grandTotal += total;
@@ -1060,9 +1083,7 @@
                 const nameSpan = getRowspan(allItems, i, 'cat', 'name');
                 const noteSpan = getRowspan(allItems, i, 'cat', 'name', 'note');
 
-                htmlBody += `
-                    <tr>
-                `;
+                htmlBody += `<tr>`;
                 if (i === 0 || allItems[i].cat !== allItems[i-1].cat) {
                     htmlBody += `<td rowspan="${catSpan}" style="font-weight: bold; background-color: #f9f9f9;">${escAttr(item.cat)}</td>`;
                 }
@@ -1078,16 +1099,16 @@
                 `;
 
                 if (i === 0 || allItems[i].cat !== allItems[i-1].cat || allItems[i].name !== allItems[i-1].name || allItems[i].note !== allItems[i-1].note) {
-                    htmlBody += `<td rowspan="${noteSpan}" style="font-size:10px; ${noteStyle}">${escAttr(item.note)}</td>`;
+                    htmlBody += `<td rowspan="${noteSpan}" style="font-size:0.85em; ${noteStyle}">${escAttr(item.note)}</td>`;
                 }
                 htmlBody += `</tr>`;
             });
             
+            // [수정] 워드 문서에서도 전체 합계 금액 2칸 병합 (colspan="2")
             htmlBody += `
                     <tr>
-                        <td colspan="5" bgcolor="#e5e7eb" style="font-weight: bold; text-align: center; font-size: 14px;">전 체 합 계 금 액</td>
-                        <td style="text-align: right; font-weight: bold; font-size: 16px; color: #1e40af; white-space: nowrap;">₩ ${fmtT(grandTotal)}</td>
-                        <td bgcolor="#e5e7eb"></td>
+                        <td colspan="5" bgcolor="#e5e7eb" style="font-weight: bold; text-align: center; font-size: 1.15em;">전 체 합 계 금 액</td>
+                        <td colspan="2" bgcolor="#e5e7eb" style="text-align: center; font-weight: bold; font-size: 1.25em; color: #1e40af; white-space: nowrap;">₩ ${fmtT(grandTotal)}</td>
                     </tr>
                 </table>
                 <div style="font-size: 12px; color: #555; margin-top: 20px; line-height: 1.5;">
