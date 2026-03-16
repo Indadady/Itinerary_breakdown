@@ -313,10 +313,21 @@
         function enrichItinerary(descText) {
             let enriched = descText;
             for (const [key, val] of Object.entries(poiDB)) {
-                // 키워드가 있고 괄호로 직접 설명을 적지 않은 경우에만 자동 추가
                 if (enriched.includes(key) && !enriched.includes(val) && !enriched.includes(key + ' (')) {
                     const regex = new RegExp(key, 'g');
                     enriched = enriched.replace(regex, `${key} <span class="text-teal-700 text-[0.85em] font-medium block mt-0.5">※ ${val}</span>`);
+                }
+            }
+            return enriched;
+        }
+
+        // DOC 다운로드 전용 요약 텍스트 (스타일 제거)
+        function enrichItineraryForDoc(descText) {
+            let enriched = descText;
+            for (const [key, val] of Object.entries(poiDB)) {
+                if (enriched.includes(key) && !enriched.includes(val) && !enriched.includes(key + ' (')) {
+                    const regex = new RegExp(key, 'g');
+                    enriched = enriched.replace(regex, `${key} <br><span style="color:#0f766e; font-size:11px;">※ ${val}</span>`);
                 }
             }
             return enriched;
@@ -616,58 +627,65 @@
             document.getElementById('live-total-amount').textContent = fmtT(gTotal);
         }
 
-        // ================= 한글/워드(DOC) 다운로드 로직 ================= //
+        // ================= 한글(HWP)/워드(DOC) 호환 다운로드 로직 (강력한 구형 HTML 적용) ================= //
         function exportToWord() {
             const data = getFormData();
             if(!data.basic.clientName) return alert('고객명(기관명)을 먼저 입력해주세요.');
 
-            // 한글(HWP) 및 워드 호환을 위한 MS-Office 네임스페이스 및 HTML 구성
+            // 로고 이미지 및 텍스트 HTML 구성
+            const logoImageSrc = "https://blogger.googleusercontent.com/img/a/AVvXsEitI-Z-hD82keOJ1AqHw-VTZjpw2U-O5UjtV9h3zblyG0wjsVfBWe9X9o0Q_Spctrt7krkd9qXO0xKTmGJLw4gyMZrRqpshKMFttnyx6OcC8-IGz3XLUZpGQOnRqVdol8jz5HuoDLqsEifnVRhcjUJHm13Sz8JrX9aPswMNUwZPvGtJEnQjhc2PiXlo-B8";
+            let topHeaderHtml = '';
+            if (data.basic.agency === 'jeju') {
+                topHeaderHtml = `<div style="text-align: right; margin-bottom: 20px;">
+                                    <div style="font-size: 22px; font-weight: bold; color: #333;">(주)제주테마투어</div>
+                                    <div style="font-size: 13px; color: #666; font-weight: bold;">담당 : 문정희 (010-2645-7524)</div>
+                                 </div>`;
+            } else {
+                topHeaderHtml = `<div style="text-align: right; margin-bottom: 20px;">
+                                    <img src="${logoImageSrc}" width="150" alt="TOURMAKER" />
+                                 </div>`;
+            }
+
+            // 한글(HWP) 및 MS Word 모두 호환되도록 CSS 클래스 대신 구형 인라인 스타일(border, bgcolor) 강제 적용
             const header = `
                 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
                 <head>
                     <meta charset='utf-8'>
                     <title>견적서</title>
-                    <style>
-                        body { font-family: 'Malgun Gothic', 'Dotum', sans-serif; }
-                        table { border-collapse: collapse; width: 100%; margin-bottom: 30px; }
-                        th, td { border: 1px solid #333; padding: 8px; font-size: 13px; text-align: center; vertical-align: middle; }
-                        .title { font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 20px; }
-                        .left { text-align: left; }
-                        .right { text-align: right; }
-                        .bg-gray { background-color: #f2f2f2; }
-                        .bold { font-weight: bold; }
-                    </style>
                 </head>
-                <body>
+                <body style="font-family: 'Malgun Gothic', 'Dotum', sans-serif;">
             `;
             
             // 1. 기본정보 및 일정표 파트
             let htmlBody = `
-                <div class="title">행사 상세 일정표</div>
-                <table>
-                    <tr><th class="bg-gray" width="20%">고객명</th><td class="left bold" width="80%">${escAttr(data.basic.clientName)}</td></tr>
-                    <tr><th class="bg-gray">행사명</th><td class="left bold">${escAttr(data.basic.docTitle)}</td></tr>
-                    <tr><th class="bg-gray">여행일</th><td class="left">${escAttr(data.basic.travelDate)}</td></tr>
+                ${topHeaderHtml}
+                <div style="font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 20px;">행사 상세 일정표</div>
+                
+                <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; margin-bottom: 20px; text-align: center; font-size: 13px; border-color: #333;">
+                    <tr><th bgcolor="#f2f2f2" width="20%">고객명</th><td style="text-align: left; font-weight: bold;" width="80%">${escAttr(data.basic.clientName)}</td></tr>
+                    <tr><th bgcolor="#f2f2f2">행사명</th><td style="text-align: left; font-weight: bold;">${escAttr(data.basic.docTitle)}</td></tr>
+                    <tr><th bgcolor="#f2f2f2">여행일</th><td style="text-align: left;">${escAttr(data.basic.travelDate)}</td></tr>
                 </table>
-                <table>
+
+                <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; margin-bottom: 30px; text-align: center; font-size: 13px; border-color: #333;">
                     <tr>
-                        <th class="bg-gray" width="15%">일자</th>
-                        <th class="bg-gray" width="65%">주요 일정</th>
-                        <th class="bg-gray" width="20%">식사/숙박</th>
+                        <th bgcolor="#f2f2f2" width="15%">일자</th>
+                        <th bgcolor="#f2f2f2" width="65%">주요 일정</th>
+                        <th bgcolor="#f2f2f2" width="20%">식사/숙박</th>
                     </tr>
             `;
             
             data.itineraries.forEach(item => {
                 if(item.date.trim()) {
-                    // 줄바꿈을 <br>로 변환
-                    const descBR = enrichItinerary(escAttr(item.desc)).replace(/\n/g, '<br>');
+                    // 줄바꿈 <br> 변환 및 전용 enrich 적용
+                    const descBR = enrichItineraryForDoc(escAttr(item.desc)).replace(/\n/g, '<br>');
                     const mealBR = escAttr(item.meal).replace(/\n/g, '<br>');
-                    const hotelRow = item.hotel ? `<br><span class="bold">[숙소] ${escAttr(item.hotel)}</span>` : '';
+                    const hotelRow = item.hotel ? `<br><br><span style="font-weight:bold; color:#1e3a8a;">[숙소] ${escAttr(item.hotel)}</span>` : '';
                     htmlBody += `
                         <tr>
-                            <td class="bold">${escAttr(item.date)}</td>
-                            <td class="left">${descBR}</td>
-                            <td>${mealBR}${hotelRow}</td>
+                            <td style="font-weight: bold;">${escAttr(item.date)}</td>
+                            <td style="text-align: left; line-height: 1.5;">${descBR}</td>
+                            <td style="line-height: 1.5;">${mealBR}${hotelRow}</td>
                         </tr>
                     `;
                 }
@@ -676,15 +694,23 @@
 
             // 2. 산출내역서 파트
             htmlBody += `
-                <div class="title">가격 산출 내역서</div>
-                <table>
-                    <tr><th class="bg-gray" width="20%">작성일자</th><td class="left bold" width="80%">${resolveTodayFormula(data.basic.issueDateRate)}</td></tr>
-                    <tr><th class="bg-gray">여행인원</th><td class="left">${escAttr(data.basic.paxStr)}</td></tr>
+                ${topHeaderHtml}
+                <div style="font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 20px;">가격 산출 내역서</div>
+                
+                <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; margin-bottom: 20px; text-align: center; font-size: 13px; border-color: #333;">
+                    <tr><th bgcolor="#f2f2f2" width="20%">작성일자</th><td style="text-align: left; font-weight: bold;" width="80%">${resolveTodayFormula(data.basic.issueDateRate)}</td></tr>
+                    <tr><th bgcolor="#f2f2f2">여행인원</th><td style="text-align: left;">${escAttr(data.basic.paxStr)}</td></tr>
                 </table>
-                <table>
+
+                <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; margin-bottom: 30px; text-align: center; font-size: 13px; border-color: #333;">
                     <tr>
-                        <th class="bg-gray">대분류</th><th class="bg-gray">항목</th><th class="bg-gray">세부 내용</th>
-                        <th class="bg-gray">수량</th><th class="bg-gray">단가(원)</th><th class="bg-gray">총금액(원)</th><th class="bg-gray">비고</th>
+                        <th bgcolor="#f2f2f2" width="12%">대분류</th>
+                        <th bgcolor="#f2f2f2" width="13%">항목</th>
+                        <th bgcolor="#f2f2f2" width="28%">세부 내용</th>
+                        <th bgcolor="#f2f2f2" width="7%">수량</th>
+                        <th bgcolor="#f2f2f2" width="13%">단가(원)</th>
+                        <th bgcolor="#f2f2f2" width="14%">총금액(원)</th>
+                        <th bgcolor="#f2f2f2" width="13%">비고</th>
                     </tr>
             `;
 
@@ -693,31 +719,38 @@
             allItems.forEach(item => {
                 const total = item.qty * item.krw;
                 grandTotal += total;
+                const noteStyle = (item.note.includes('*') || item.note.includes('포함')) ? 'color: red; font-weight: bold;' : 'color: #333;';
+                
                 htmlBody += `
                     <tr>
-                        <td>${escAttr(item.cat)}</td><td>${escAttr(item.name)}</td><td class="left">${escAttr(item.desc)}</td>
-                        <td>${fmt(item.qty)}</td><td class="right">${fmt(item.krw)}</td><td class="right bold">${fmtT(total)}</td>
-                        <td style="font-size:11px;">${escAttr(item.note)}</td>
+                        <td style="font-weight: bold; background-color: #f9f9f9;">${escAttr(item.cat)}</td>
+                        <td>${escAttr(item.name)}</td>
+                        <td style="text-align: left;">${escAttr(item.desc)}</td>
+                        <td>${fmt(item.qty)}</td>
+                        <td style="text-align: right;">${fmt(item.krw)}</td>
+                        <td style="text-align: right; font-weight: bold; color: #111;">${fmtT(total)}</td>
+                        <td style="font-size:11px; ${noteStyle}">${escAttr(item.note)}</td>
                     </tr>
                 `;
             });
             
             htmlBody += `
                     <tr>
-                        <td colspan="5" class="bg-gray bold text-center">전 체 합 계 금 액</td>
-                        <td class="right bold" style="font-size:15px; color:#1e40af;">₩ ${fmtT(grandTotal)}</td>
-                        <td class="bg-gray"></td>
+                        <td colspan="5" bgcolor="#e5e7eb" style="font-weight: bold; text-align: center; font-size: 14px;">전 체 합 계 금 액</td>
+                        <td style="text-align: right; font-weight: bold; font-size: 16px; color: #1e40af;">₩ ${fmtT(grandTotal)}</td>
+                        <td bgcolor="#e5e7eb"></td>
                     </tr>
                 </table>
-                <div style="font-size: 11px; color: #666; margin-top: 20px;">
-                    * 본 위탁용역의 특성상 수탁 대행 처리 항목으로 분류되어, 국내 과세 대상 경비 중 알선수수료 등 자체수익에 대해서만 세금계산서를 발행합니다.
+                <div style="font-size: 12px; color: #555; margin-top: 20px; line-height: 1.5;">
+                    * 본 위탁용역의 특성상 항공권, 숙박비, 현지교통비 등은 당사가 직접 제공하는 서비스가 아닌, 제 3자와의 거래를 통한 수탁 대행 처리 항목으로 분류됩니다.<br>
+                    따라서, 당사는 전체 계약금액 기준의 세금계산서 발행이 불가하며, 국내 과세 대상 경비 중 <strong>알선수수료</strong> 등 자체수익에 대해서만 세금계산서를 발행함을 사전 안내드립니다.
                 </div>
             `;
 
             const footer = "</body></html>";
             const sourceHTML = header + htmlBody + footer;
             
-            // Blob 및 다운로드 처리 (DOC 확장자 사용 시 한글/워드 호환)
+            // 다운로드 실행
             const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
