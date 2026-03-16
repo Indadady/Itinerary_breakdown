@@ -197,7 +197,7 @@
                 
                 <!-- ====== [페이지 1] 행사 일정표 ====== -->
                 <div class="a4-page" id="page-1">
-                    <div class="flex justify-between items-start mb-6">
+                    <div class="flex justify-between items-start mb-4">
                         <div class="inline-block">
                             <table class="compact-table border-t-2 border-b-2 border-slate-800 border-l border-r border-slate-300 text-[12px]">
                                 <tbody>
@@ -210,7 +210,7 @@
                         <div class="out-agency-logo pt-1 text-right"></div>
                     </div>
 
-                    <div class="text-center mb-4">
+                    <div class="text-center mb-3">
                         <h2 class="text-[26px] font-black text-slate-900 tracking-widest border-b-2 border-slate-800 inline-block pb-1 px-4">행사 상세 일정표</h2>
                         <p class="text-slate-500 font-bold mt-1 tracking-[0.2em] text-[10px] uppercase">Tour Itinerary</p>
                     </div>
@@ -314,13 +314,15 @@
 
         function enrichItinerary(descText) {
             let enriched = descText;
+            // 1. 내장 DB 자동완성 (단순히 ※ 기호와 텍스트만 덧붙임)
             for (const [key, val] of Object.entries(poiDB)) {
-                // 이미 AI나 수동으로 '※' 기호가 들어간 줄은 중복 처리 방지
                 if (enriched.includes(key) && !enriched.includes(val) && !enriched.includes(`※ ${val}`) && !enriched.includes(key + ' (')) {
                     const regex = new RegExp(key, 'g');
-                    enriched = enriched.replace(regex, `${key} <span class="text-teal-700 text-[0.85em] font-medium block mt-0.5">※ ${val}</span>`);
+                    enriched = enriched.replace(regex, `${key}\n※ ${val}`);
                 }
             }
+            // 2. DB 자동완성이든, AI가 생성한 문구이든 '※'로 시작하는 줄은 모두 일관된 색상/스타일 적용
+            enriched = enriched.replace(/(※[^\n]+)/g, '<span class="text-teal-700 text-[0.85em] font-medium block mt-0.5">$1</span>');
             return enriched;
         }
 
@@ -329,9 +331,11 @@
             for (const [key, val] of Object.entries(poiDB)) {
                 if (enriched.includes(key) && !enriched.includes(val) && !enriched.includes(`※ ${val}`) && !enriched.includes(key + ' (')) {
                     const regex = new RegExp(key, 'g');
-                    enriched = enriched.replace(regex, `${key} <br><span style="color:#0f766e; font-size:11px;">※ ${val}</span>`);
+                    enriched = enriched.replace(regex, `${key}\n※ ${val}`);
                 }
             }
+            // 워드/한글 다운로드용 동일 색상 통일 처리
+            enriched = enriched.replace(/(※[^\n]+)/g, '<span style="color:#0f766e; font-size:11px;">$1</span>');
             return enriched;
         }
 
@@ -593,7 +597,7 @@ ${text}`;
                 : `[System Powered by TOURMAKER] 본 문서는 <strong>투어메이커</strong>의 기획과 트래블 테크 기술 제휴로 제작되었습니다.`;
             document.querySelectorAll('.out-footer-text').forEach(el => el.innerHTML = footerHtml);
 
-            // 1. 일정표 렌더링 (동적 글자 크기 및 여백 반영)
+            // 1. 일정표 렌더링 (동적 글자 크기 및 여백 1~5박 세분화 적용)
             const visibleIt = data.itineraries.filter(item => String(item.date || '').trim() !== '');
             let itHtml = '';
             
@@ -601,26 +605,25 @@ ${text}`;
             let paddingClass = "py-3"; 
             let headerFontClass = "text-[13px]";
             let hotelFontClass = "text-[12px]";
+            let hotelPaddingClass = "py-2";
             let lineHeightClass = "leading-[1.6]";
             
             if (visibleIt.length <= 2) {
-                fontClass = "text-[16px]";
-                paddingClass = "py-4";     
-                headerFontClass = "text-[15px]";
-                hotelFontClass = "text-[14px]";
-                lineHeightClass = "leading-[1.7]";
+                // 1박 2일 특화 (크고 쾌적하게)
+                fontClass = "text-[16px]"; paddingClass = "py-4";     
+                headerFontClass = "text-[15px]"; hotelFontClass = "text-[14px]"; hotelPaddingClass = "py-2"; lineHeightClass = "leading-[1.7]";
             } else if (visibleIt.length === 3) {
-                fontClass = "text-[14px]"; 
-                paddingClass = "py-3";     
-                headerFontClass = "text-[14px]";
-                hotelFontClass = "text-[13px]";
-                lineHeightClass = "leading-[1.6]";
-            } else if (visibleIt.length >= 4) {
-                fontClass = "text-[12px]"; 
-                paddingClass = "py-2";     
-                headerFontClass = "text-[13px]";
-                hotelFontClass = "text-[11.5px]";
-                lineHeightClass = "leading-[1.5]";
+                // 2박 3일 기준 (표준)
+                fontClass = "text-[14px]"; paddingClass = "py-2.5";     
+                headerFontClass = "text-[14px]"; hotelFontClass = "text-[13px]"; hotelPaddingClass = "py-1.5"; lineHeightClass = "leading-[1.6]";
+            } else if (visibleIt.length === 4) {
+                // 3박 4일 맞춤 (살짝 줄임)
+                fontClass = "text-[12.5px]"; paddingClass = "py-1.5";     
+                headerFontClass = "text-[13px]"; hotelFontClass = "text-[11.5px]"; hotelPaddingClass = "py-1"; lineHeightClass = "leading-[1.5]";
+            } else if (visibleIt.length >= 5) {
+                // 4박 5일 이상 (여백 최소화, 한 장 꽉 채우기)
+                fontClass = "text-[11px]"; paddingClass = "py-1";     
+                headerFontClass = "text-[12px]"; hotelFontClass = "text-[10.5px]"; hotelPaddingClass = "py-0.5"; lineHeightClass = "leading-[1.35]";
             }
 
             const theadRow = document.getElementById('thead-itinerary-row');
@@ -632,7 +635,7 @@ ${text}`;
                 itHtml = `<tr><td colspan="3" class="text-center py-10 text-slate-400">입력된 일정이 없습니다.</td></tr>`;
             } else {
                 visibleIt.forEach((item, idx) => {
-                    const hotelRow = item.hotel ? `<tr class="hotel-row"><td colspan="2" class="px-5 font-bold bg-blue-50 text-blue-900 border-t border-slate-300 py-2 ${hotelFontClass}">숙소 : ${escAttr(item.hotel)}</td></tr>` : '';
+                    const hotelRow = item.hotel ? `<tr class="hotel-row"><td colspan="2" class="px-5 font-bold bg-blue-50 text-blue-900 border-t border-slate-300 ${hotelPaddingClass} ${hotelFontClass}">숙소 : ${escAttr(item.hotel)}</td></tr>` : '';
                     const rs = item.hotel ? 2 : 1;
                     
                     const enrichedDesc = enrichItinerary(escAttr(item.desc));
