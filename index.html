@@ -23,11 +23,15 @@
         /* ===== 웹뷰 A4 컨테이너 설정 ===== */
         #print-container { display: flex; flex-direction: column; gap: 20px; align-items: center; width: 100%; }
         .a4-page {
-            width: 210mm; min-height: 297mm; height: max-content; background: white; padding: 12mm 10mm;
+            width: 210mm; background: white; padding: 12mm 10mm;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             display: flex; flex-direction: column; box-sizing: border-box;
             flex: none;
         }
+
+        /* [개선] 1페이지(일정표)는 무조건 A4 세로 높이에 꽉 차게 고정, 2페이지는 유동적 늘어남 허용 */
+        #page-1 { height: 297mm; min-height: 297mm; }
+        #page-2 { height: max-content; min-height: 297mm; }
 
         /* 모바일 및 태블릿 화면 A4 뷰어 자동 축소 최적화 */
         @media screen and (max-width: 1024px) { .a4-page { zoom: 0.8; } }
@@ -49,10 +53,13 @@
             #print-container { display: block !important; width: 100% !important; }
 
             .a4-page {
-                width: 210mm; min-height: 297mm; height: auto; padding: 12mm 10mm; 
+                width: 210mm; padding: 12mm 10mm; 
                 box-shadow: none !important; margin: 0 auto; 
                 page-break-after: always; position: relative;
             }
+            #page-1 { height: 297mm !important; }
+            #page-2 { height: auto !important; min-height: 297mm !important; }
+
             .a4-page:last-child { page-break-after: auto; }
 
             table { border-collapse: collapse !important; width: 100% !important; }
@@ -73,7 +80,7 @@
         .compact-table td { padding: 4px 12px; white-space: nowrap; }
 
         /* 일정표/산출내역 레이아웃 */
-        .itinerary-table { display: table; width: 100%; table-layout: fixed; margin-bottom: auto; }
+        .itinerary-table { display: table; width: 100%; table-layout: fixed; }
         .estimate-table { display: table; width: 100%; margin-bottom: auto; }
         .estimate-table tbody tr { height: auto; }
 
@@ -92,7 +99,7 @@
     <!-- ===== 상단 네비게이션 바 ===== -->
     <div class="bg-slate-900 text-white px-3 md:px-5 py-3 flex justify-between items-center no-print shadow-md z-40 sticky top-0 lg:static flex-shrink-0">
         <div class="flex items-center gap-2 md:gap-3">
-            <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHfgIX70O5k6Anuo0UgALIdaG9jSga9auHu3uyz0uEirylGPAJnjN_qQbvEGMUvPqUQf_g9FMNUHRxlDcUBf4vZ3Mpy4TnA9WxbmzWYK11gt2zuy_Irl4wctNFjcjLyPo0GPXV792o_J7L9guRMuDfeC1gy7USwywjYbECZgzcsHybuGRRAXAnO1eNmP8/s320/logo.png" alt="Tourmaker" class="h-6 md:h-7 filter brightness-0 invert">
+            <img src="https://blogger.googleusercontent.com/img/a/AVvXsEitI-Z-hD82keOJ1AqHw-VTZjpw2U-O5UjtV9h3zblyG0wjsVfBWe9X9o0Q_Spctrt7krkd9qXO0xKTmGJLw4gyMZrRqpshKMFttnyx6OcC8-IGz3XLUZpGQOnRqVdol8jz5HuoDLqsEifnVRhcjUJHm13Sz8JrX9aPswMNUwZPvGtJEnQjhc2PiXlo-B8" alt="Tourmaker" class="h-6 md:h-7 filter brightness-0 invert">
             <h1 class="text-[13px] md:text-[16px] font-bold tracking-wide text-emerald-400 border-l border-slate-600 pl-2 md:pl-3">
                 <span class="hidden md:inline">행사 일정 및 산출내역 </span>자동화 시스템
             </h1>
@@ -206,7 +213,7 @@
                 
                 <!-- ====== [페이지 1] 행사 일정표 ====== -->
                 <div class="a4-page" id="page-1">
-                    <div class="mb-5">
+                    <div class="mb-4">
                         <table class="compact-table border-t-2 border-b-2 border-slate-800 border-l border-r border-slate-300 text-[12px] w-full text-left">
                             <colgroup>
                                 <col width="12%"><col width="38%">
@@ -242,8 +249,9 @@
                         <div class="w-[120px] text-right out-agency-logo-side"></div>
                     </div>
 
-                    <div class="w-full mb-4 flex flex-col">
-                        <table class="itinerary-table w-full border-t border-b-2 border-slate-800">
+                    <!-- [개선] 남은 공간을 완벽히 채우는 Flex-1 & H-full 레이아웃 -->
+                    <div class="w-full flex-1 flex flex-col mb-3">
+                        <table class="itinerary-table w-full h-full border-t-2 border-b-2 border-slate-800">
                             <colgroup>
                                 <col width="15%"><col width="65%"><col width="20%">
                             </colgroup>
@@ -500,13 +508,10 @@
         function enrichItinerary(descText) {
             let enriched = descText.replace(/\n\s*\n/g, '\n');
             for (const [key, val] of Object.entries(poiDB)) {
-                // 키워드가 포함되어 있으면서, 해당 장소의 'val(설명)'이 아직 텍스트에 없는 경우
                 if (enriched.includes(key) && !enriched.includes(val)) {
-                    // 이미 다른 방식으로 추가된 (※ ...) 패턴이 바로 뒤에 없는지 확인 후 교체
                     const hasTargetDesc = new RegExp(key + '\\s*\\(※', 'g');
                     if (!hasTargetDesc.test(enriched)) {
                         const regex = new RegExp(key, 'g');
-                        // 에코랜드(기차탑승) -> 에코랜드(기차탑승) (※ 곶자왈 원시림...) 형태로 보존되도록 기본 치환
                         enriched = enriched.replace(regex, `${key} (※ ${val})`);
                     }
                 }
@@ -545,9 +550,7 @@
 
             let updated = false;
             for (const [key, val] of Object.entries(poiDB)) {
-                // 키워드가 텍스트에 있고, 해당 설명이 아직 없는 경우
                 if (text.includes(key) && !text.includes(val)) {
-                    // 키워드 바로 뒤에 이미 (※ ... ) 설명이 있는지 방어 코드
                     const hasTargetDesc = new RegExp(key + '\\s*\\(※', 'g');
                     if (!hasTargetDesc.test(text)) {
                         const regex = new RegExp(key, 'g');
@@ -774,7 +777,8 @@
             if (agency === 'jeju') {
                 return `<div class="text-right leading-tight pt-1"><div class="font-black text-[18px] text-slate-800 tracking-widest">(주)제주테마투어</div><div class="text-[11px] text-slate-500 font-bold mt-1">담당 : 문정희 (010-2645-7524)</div></div>`;
             }
-            return `<img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHfgIX70O5k6Anuo0UgALIdaG9jSga9auHu3uyz0uEirylGPAJnjN_qQbvEGMUvPqUQf_g9FMNUHRxlDcUBf4vZ3Mpy4TnA9WxbmzWYK11gt2zuy_Irl4wctNFjcjLyPo0GPXV792o_J7L9guRMuDfeC1gy7USwywjYbECZgzcsHybuGRRAXAnO1eNmP8/s320/logo.png" alt="TOURMAKER" class="h-[30px] object-contain inline-block">`;
+            // 기존 선호 투어메이커 로고 교체 및 크기 소폭 증대
+            return `<img src="https://blogger.googleusercontent.com/img/a/AVvXsEitI-Z-hD82keOJ1AqHw-VTZjpw2U-O5UjtV9h3zblyG0wjsVfBWe9X9o0Q_Spctrt7krkd9qXO0xKTmGJLw4gyMZrRqpshKMFttnyx6OcC8-IGz3XLUZpGQOnRqVdol8jz5HuoDLqsEifnVRhcjUJHm13Sz8JrX9aPswMNUwZPvGtJEnQjhc2PiXlo-B8" alt="TOURMAKER" class="h-[40px] object-contain inline-block">`;
         }
 
         function calculateAndRender() {
@@ -794,29 +798,29 @@
                 : `[System Powered by TOURMAKER] 본 문서는 <a href="http://tourmaker.kr" target="_blank" class="font-bold text-slate-800 hover:underline">투어메이커</a>의 기획과 트래블 테크 기술 제휴로 제작되었습니다.`;
             document.querySelectorAll('.out-footer-text').forEach(el => el.innerHTML = footerHtml);
 
-            // 1. 일정표 렌더링 
+            // 1. 일정표 렌더링 (동적 높이와 폰트 스케일링 완벽 대응)
             const visibleIt = data.itineraries.filter(item => String(item.date || '').trim() !== '');
             let itHtml = '';
             
-            let fontClass = "text-[13px]";
-            let paddingClass = "py-3"; 
-            let headerFontClass = "text-[13px]";
-            let hotelFontClass = "text-[12px]";
-            let hotelPaddingClass = "py-2";
+            let fontClass = "text-[14px]";
+            let pyClass = "py-3"; 
+            let headerFontClass = "text-[14px]";
+            let hotelFontClass = "text-[13px]";
+            let hotelPyClass = "py-2";
             let lineHeightClass = "leading-[1.6]";
             
             if (visibleIt.length <= 2) {
-                fontClass = "text-[16px]"; paddingClass = "py-4";     
-                headerFontClass = "text-[15px]"; hotelFontClass = "text-[14px]"; hotelPaddingClass = "py-2"; lineHeightClass = "leading-[1.7]";
+                fontClass = "text-[18px]"; pyClass = "py-8";     
+                headerFontClass = "text-[16px]"; hotelFontClass = "text-[15px]"; hotelPyClass = "py-4"; lineHeightClass = "leading-[2.0]";
             } else if (visibleIt.length === 3) {
-                fontClass = "text-[14px]"; paddingClass = "py-2.5";     
-                headerFontClass = "text-[14px]"; hotelFontClass = "text-[13px]"; hotelPaddingClass = "py-1.5"; lineHeightClass = "leading-[1.6]";
+                fontClass = "text-[16px]"; pyClass = "py-6";     
+                headerFontClass = "text-[15px]"; hotelFontClass = "text-[14px]"; hotelPyClass = "py-3"; lineHeightClass = "leading-[1.8]";
             } else if (visibleIt.length === 4) {
-                fontClass = "text-[12.5px]"; paddingClass = "py-1.5";     
-                headerFontClass = "text-[13px]"; hotelFontClass = "text-[11.5px]"; hotelPaddingClass = "py-1"; lineHeightClass = "leading-[1.45]";
+                fontClass = "text-[14.5px]"; pyClass = "py-4";     
+                headerFontClass = "text-[14px]"; hotelFontClass = "text-[13px]"; hotelPyClass = "py-2"; lineHeightClass = "leading-[1.7]";
             } else if (visibleIt.length >= 5) {
-                fontClass = "text-[11.5px]"; paddingClass = "py-0.5";     
-                headerFontClass = "text-[12px]"; hotelFontClass = "text-[10.5px]"; hotelPaddingClass = "py-0.5"; lineHeightClass = "leading-[1.3]";
+                fontClass = "text-[12.5px]"; pyClass = "py-2.5";     
+                headerFontClass = "text-[13px]"; hotelFontClass = "text-[12px]"; hotelPyClass = "py-1.5"; lineHeightClass = "leading-[1.5]";
             }
 
             const theadRow = document.getElementById('thead-itinerary-row');
@@ -828,17 +832,18 @@
                 itHtml = `<tr><td colspan="3" class="text-center py-10 text-slate-400">입력된 일정이 없습니다.</td></tr>`;
             } else {
                 visibleIt.forEach((item, idx) => {
-                    const hotelRow = item.hotel ? `<tr class="hotel-row"><td colspan="1" class="px-5 font-bold bg-blue-50 text-blue-900 border-t border-slate-300 border-r ${hotelPaddingClass} ${hotelFontClass}">숙소 : ${escAttr(item.hotel)}</td></tr>` : '';
+                    const hotelRow = item.hotel ? `<tr class="hotel-row"><td colspan="1" class="px-5 font-bold bg-blue-50 text-blue-900 border-t border-slate-300 border-r ${hotelPyClass} ${hotelFontClass}">숙소 : ${escAttr(item.hotel)}</td></tr>` : '';
                     const rs = item.hotel ? 2 : 1;
                     
                     const enrichedDesc = enrichItinerary(escAttr(item.desc));
                     const formattedMeal = item.meal.split('\n').map(line => `<div style="padding-left: 1.4em; text-indent: -1.4em;">${escAttr(line)}</div>`).join('');
 
+                    // align-middle 클래스를 통해 남는 상하 여백을 완벽하게 중간 정렬시킵니다
                     itHtml += `
                         <tr class="data-row ${idx%2===0 ? 'bg-white' : 'print-bg-gray bg-slate-50'}">
-                            <td rowspan="${rs}" class="text-center font-extrabold text-slate-800 border-r border-slate-300 ${fontClass} ${paddingClass} align-top">${escAttr(item.date)}</td>
-                            <td class="text-left px-5 whitespace-pre-line border-r border-slate-300 ${lineHeightClass} text-slate-900 ${fontClass} ${paddingClass} font-medium align-top">${enrichedDesc}</td>
-                            <td rowspan="${rs}" class="text-left px-4 text-blue-900 font-bold ${lineHeightClass} ${fontClass} ${paddingClass} align-top">${formattedMeal}</td>
+                            <td rowspan="${rs}" class="text-center font-extrabold text-slate-800 border-r border-slate-300 ${fontClass} ${pyClass} align-middle">${escAttr(item.date)}</td>
+                            <td class="text-left px-6 whitespace-pre-line border-r border-slate-300 ${lineHeightClass} text-slate-900 ${fontClass} ${pyClass} font-medium align-middle">${enrichedDesc}</td>
+                            <td rowspan="${rs}" class="text-left px-5 text-blue-900 font-bold ${lineHeightClass} ${fontClass} ${pyClass} align-middle">${formattedMeal}</td>
                         </tr>
                         ${hotelRow}
                     `;
@@ -923,7 +928,7 @@
             const data = getFormData();
             if(!data.basic.clientName) return alert('고객명(기관명)을 먼저 입력해주세요.');
 
-            const logoImageSrc = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHfgIX70O5k6Anuo0UgALIdaG9jSga9auHu3uyz0uEirylGPAJnjN_qQbvEGMUvPqUQf_g9FMNUHRxlDcUBf4vZ3Mpy4TnA9WxbmzWYK11gt2zuy_Irl4wctNFjcjLyPo0GPXV792o_J7L9guRMuDfeC1gy7USwywjYbECZgzcsHybuGRRAXAnO1eNmP8/s320/logo.png";
+            const logoImageSrc = "https://blogger.googleusercontent.com/img/a/AVvXsEitI-Z-hD82keOJ1AqHw-VTZjpw2U-O5UjtV9h3zblyG0wjsVfBWe9X9o0Q_Spctrt7krkd9qXO0xKTmGJLw4gyMZrRqpshKMFttnyx6OcC8-IGz3XLUZpGQOnRqVdol8jz5HuoDLqsEifnVRhcjUJHm13Sz8JrX9aPswMNUwZPvGtJEnQjhc2PiXlo-B8";
             let topHeaderHtml = '';
             
             // 로고 위치를 표와 맞추기 위한 테이블 구조
@@ -952,7 +957,7 @@
                             <div style="font-size: 10px; color: #666; font-weight: bold; letter-spacing: 2px;">TOUR ITINERARY</div>
                         </td>
                         <td width="20%" style="text-align:right;">
-                            <img src="${logoImageSrc}" width="150" alt="TOURMAKER" />
+                            <img src="${logoImageSrc}" width="180" alt="TOURMAKER" />
                         </td>
                     </tr>
                 </table>`;
@@ -987,8 +992,20 @@
                 </table>
 
                 ${topHeaderHtml}
+            `;
 
-                <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; margin-bottom: 30px; text-align: center; font-size: 13px; border-color: #333;">
+            // 워드 문서 내에서도 일수에 따라 여백과 글자크기를 늘려 빈 공간이 없어보이게 꽉 채우는 로직
+            const visibleIt = data.itineraries.filter(item => String(item.date || '').trim() !== '');
+            let wordCellPadding = 8;
+            let wordFontSize = 13;
+            let wordLineHeight = 1.5;
+            
+            if (visibleIt.length <= 2) { wordCellPadding = 25; wordFontSize = 16; wordLineHeight = 2.0; }
+            else if (visibleIt.length === 3) { wordCellPadding = 18; wordFontSize = 15; wordLineHeight = 1.8; }
+            else if (visibleIt.length === 4) { wordCellPadding = 12; wordFontSize = 14; wordLineHeight = 1.6; }
+
+            htmlBody += `
+                <table border="1" cellpadding="${wordCellPadding}" cellspacing="0" style="border-collapse: collapse; width: 100%; margin-bottom: 30px; text-align: center; font-size: ${wordFontSize}px; border-color: #333;">
                     <tr>
                         <th bgcolor="#f2f2f2" width="15%">일자</th>
                         <th bgcolor="#f2f2f2" width="65%">주요 일정</th>
@@ -1005,9 +1022,9 @@
                     
                     htmlBody += `
                         <tr>
-                            <td rowspan="${rs}" style="font-weight: bold; vertical-align: top;">${escAttr(item.date)}</td>
-                            <td style="text-align: left; line-height: 1.5; vertical-align: top;">${descBR}</td>
-                            <td rowspan="${rs}" style="text-align: left; line-height: 1.5; vertical-align: top; font-weight:bold; color:#1e3a8a;">${formattedMealWord}</td>
+                            <td rowspan="${rs}" style="font-weight: bold; vertical-align: middle;">${escAttr(item.date)}</td>
+                            <td style="text-align: left; line-height: ${wordLineHeight}; vertical-align: middle;">${descBR}</td>
+                            <td rowspan="${rs}" style="text-align: left; line-height: ${wordLineHeight}; vertical-align: middle; font-weight:bold; color:#1e3a8a;">${formattedMealWord}</td>
                         </tr>
                         ${hotelRow}
                     `;
