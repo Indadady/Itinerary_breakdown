@@ -23,7 +23,6 @@
         /* ===== 웹뷰 A4 컨테이너 설정 ===== */
         #print-container { display: flex; flex-direction: column; gap: 20px; align-items: center; }
         .a4-page {
-            /* ★ 좌우 패딩을 15mm -> 10mm로 줄여 표의 절대적인 가로 너비를 확보함 */
             width: 210mm; height: 297mm; background: white; padding: 12mm 10mm;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             display: flex; flex-direction: column; box-sizing: border-box;
@@ -40,7 +39,7 @@
             #print-container { display: block !important; width: 100% !important; }
 
             .a4-page {
-                width: 210mm; height: 297mm; padding: 12mm 10mm; /* 인쇄 시에도 좌우 여백 축소 유지 */
+                width: 210mm; height: 297mm; padding: 12mm 10mm; 
                 box-shadow: none !important; margin: 0 auto; 
                 page-break-after: always; position: relative;
             }
@@ -59,20 +58,14 @@
         th, td { border: 1px solid #94a3b8; padding: 6px 8px; font-size: 12px; vertical-align: middle; word-break: break-word; }
         th { text-align: center; font-weight: 700; color: #0f172a; }
         
-        /* 컴팩트 헤더 테이블 세팅 */
         .compact-table { table-layout: auto; width: auto; min-width: 50%; }
         .compact-table th { padding: 4px 12px; white-space: nowrap; width: 25%; }
         .compact-table td { padding: 4px 12px; white-space: nowrap; }
 
-        /* 일정표 꽉 차게 균등 배분 (Flex Table) */
-        .itinerary-table { display: table; height: 100%; width: 100%; table-layout: fixed; }
-        .itinerary-table tbody { height: 100%; }
-        .itinerary-table tr.data-row { height: 1%; } 
-        .itinerary-table tr.data-row td { padding-top: 8px; padding-bottom: 8px; vertical-align: middle; } 
-        .itinerary-table tr.hotel-row { height: 1px; } 
-        .itinerary-table tr.hotel-row td { padding-top: 6px; padding-bottom: 6px; }
-
-        .estimate-table { display: table; height: 100%; }
+        /* 일정표 레이아웃 (강제 100% 늘어남 해제, 자연스러운 패딩 적용) */
+        .itinerary-table { display: table; width: 100%; table-layout: fixed; margin-bottom: auto; }
+        
+        .estimate-table { display: table; width: 100%; margin-bottom: auto; }
         .estimate-table tbody tr { height: auto; }
 
         /* 스크롤바 */
@@ -97,7 +90,11 @@
         </div>
         <div class="flex items-center gap-2">
             <button onclick="clearForm()" class="bg-slate-600 hover:bg-slate-500 text-white px-3 py-1.5 rounded text-sm font-semibold transition">📝 폼 초기화</button>
-            <button onclick="handlePrint()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-sm font-semibold shadow transition">🖨️ PDF 2장 인쇄</button>
+            <button onclick="exportToWord()" class="bg-teal-600 hover:bg-teal-500 text-white px-3 py-1.5 rounded text-sm font-semibold shadow transition flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                한글/워드 다운로드
+            </button>
+            <button onclick="handlePrint()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-sm font-semibold shadow transition">🖨️ PDF 인쇄</button>
         </div>
     </div>
 
@@ -107,7 +104,6 @@
         <!-- [좌측] 데이터 입력 패널 -->
         <div id="input-panel" class="w-full lg:w-[500px] flex flex-col bg-white border-r border-gray-300 no-print z-10 flex-shrink-0 h-full">
             
-            <!-- 스크롤 가능한 본문 영역 -->
             <div class="flex-1 overflow-y-auto p-5 custom-scrollbar pb-10">
                 <!-- 템플릿 및 파일 관리 -->
                 <div class="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-lg">
@@ -141,8 +137,8 @@
                             <div class="col-span-2">
                                 <label class="block text-slate-600 mb-1 font-semibold">적용 로고</label>
                                 <select id="inp-agency" class="w-full border rounded p-1.5 font-bold text-blue-800 outline-none">
+                                    <option value="jeju">(주)제주테마투어 (텍스트 및 담당자 삽입 / 한글파일 특화)</option>
                                     <option value="tourmaker">투어메이커 (로고 삽입)</option>
-                                    <option value="jeju">(주)제주테마투어 (텍스트 및 담당자 삽입)</option>
                                 </select>
                             </div>
                             <div class="col-span-2"><label class="block text-slate-600 mb-1 font-semibold">고객명 (기관명)</label><input type="text" id="inp-clientName" class="w-full border rounded p-1.5 outline-none focus:border-blue-500"></div>
@@ -150,7 +146,7 @@
                             <div><label class="block text-slate-600 mb-1 font-semibold">여행 기간</label><input type="text" id="inp-travelDate" class="w-full border rounded p-1.5 outline-none focus:border-blue-500"></div>
                             <div><label class="block text-slate-600 mb-1 font-semibold">여행 인원</label><input type="text" id="inp-paxStr" class="w-full border rounded p-1.5 outline-none focus:border-blue-500"></div>
                             <div class="col-span-2">
-                                <label class="block text-slate-600 mb-1 font-semibold">작성일자 / 비고 <span class="text-[10px] text-slate-400 font-normal ml-1">(=today() 자동 변환)</span></label>
+                                <label class="block text-slate-600 mb-1 font-semibold">작성일자 / 비고</label>
                                 <input type="text" id="inp-issueDateRate" class="w-full border rounded p-1.5 outline-none focus:border-blue-500 text-blue-700 font-bold" value="=today() / 원화결제">
                             </div>
                         </div>
@@ -158,24 +154,21 @@
 
                     <!-- 2. 일정표 -->
                     <div>
-                        <h3 class="font-bold text-blue-800 border-l-4 border-blue-800 pl-2 text-sm mb-3">2. 행사 일정표 (시간/주요일정 수기입력)</h3>
-                        <p class="text-[11px] text-slate-500 mb-2 leading-tight">※ 시간과 일정을 자유롭게 적어주세요. 엑셀처럼 자동 렌더링됩니다.</p>
+                        <h3 class="font-bold text-blue-800 border-l-4 border-blue-800 pl-2 text-sm mb-3">2. 행사 일정표 (설명 자동완성 적용)</h3>
+                        <p class="text-[11px] text-slate-500 mb-2 leading-tight">※ 대표 관광지명(예: 카멜리아힐, 비자림) 입력 시 결과물에 자동으로 짧은 설명이 추가됩니다.</p>
                         <div id="itinerary-inputs-container" class="space-y-3"></div>
                     </div>
 
                     <!-- 3. 항공비 -->
                     <div>
                         <h3 class="font-bold text-indigo-800 border-l-4 border-indigo-800 pl-2 text-sm mb-3">3. 산출내역 - 항공비</h3>
-                        <p class="text-[10px] text-slate-500 mb-2">※ 텍스트 입력칸에서 <span class="font-bold text-slate-800">엔터(Enter)</span>를 치면 PDF에서도 줄바꿈이 적용됩니다.</p>
                         <div id="flight-inputs-container" class="space-y-2"></div>
                         <button onclick="addFlightRow()" class="w-full mt-2 py-2 border border-dashed border-slate-300 text-slate-500 rounded text-xs font-bold hover:bg-slate-50">+ 항목 추가</button>
                     </div>
 
-                    <!-- 4. 지상비 (제주) -->
+                    <!-- 4. 지상비 -->
                     <div>
-                        <h3 class="font-bold text-green-800 border-l-4 border-green-800 pl-2 text-sm mb-3">
-                            4. 산출내역 - 현지 지상비 <span class="text-[10px] font-normal text-gray-500 ml-2">*대/중분류 동일 시 자동 병합</span>
-                        </h3>
+                        <h3 class="font-bold text-green-800 border-l-4 border-green-800 pl-2 text-sm mb-3">4. 산출내역 - 현지 지상비</h3>
                         <div id="local-inputs-container" class="space-y-2"></div>
                         <button onclick="addLocalRow()" class="w-full mt-2 py-2 border border-dashed border-slate-300 text-slate-500 rounded text-xs font-bold hover:bg-slate-50">+ 항목 추가</button>
                     </div>
@@ -189,12 +182,11 @@
                 </div>
             </div>
             
-            <!-- ★ 하단 고정 실시간 요약 바 (Sticky Footer) ★ -->
+            <!-- 하단 요약 바 -->
             <div class="sticky bottom-0 bg-slate-900 text-white p-4 flex justify-between items-center shadow-[0_-4px_10px_rgba(0,0,0,0.2)] z-50 flex-shrink-0">
                 <span class="text-sm font-bold text-slate-300">총 견적 금액 (KRW)</span>
                 <span class="text-[22px] font-black text-amber-400" id="live-total-amount">0</span>
             </div>
-
         </div>
 
         <!-- [우측] 출력물 (A4 2장) 패널 -->
@@ -203,23 +195,13 @@
                 
                 <!-- ====== [페이지 1] 행사 일정표 ====== -->
                 <div class="a4-page" id="page-1">
-                    
                     <div class="flex justify-between items-start mb-6">
                         <div class="inline-block">
                             <table class="compact-table border-t-2 border-b-2 border-slate-800 border-l border-r border-slate-300 text-[12px]">
                                 <tbody>
-                                    <tr class="border-b border-slate-300">
-                                        <th class="print-bg-header bg-slate-50">고객명</th>
-                                        <td class="font-bold text-slate-900 out-clientName"></td>
-                                    </tr>
-                                    <tr class="border-b border-slate-300">
-                                        <th class="print-bg-header bg-slate-50">행사명</th>
-                                        <td class="font-bold text-slate-900 out-docTitle"></td>
-                                    </tr>
-                                    <tr>
-                                        <th class="print-bg-header bg-slate-50">여행일</th>
-                                        <td class="out-travelDate"></td>
-                                    </tr>
+                                    <tr class="border-b border-slate-300"><th class="print-bg-header bg-slate-50">고객명</th><td class="font-bold text-slate-900 out-clientName"></td></tr>
+                                    <tr class="border-b border-slate-300"><th class="print-bg-header bg-slate-50">행사명</th><td class="font-bold text-slate-900 out-docTitle"></td></tr>
+                                    <tr><th class="print-bg-header bg-slate-50">여행일</th><td class="out-travelDate"></td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -231,14 +213,13 @@
                         <p class="text-slate-500 font-bold mt-1 tracking-[0.2em] text-[10px] uppercase">Tour Itinerary</p>
                     </div>
 
-                    <!-- 일정표 테이블 -->
                     <div class="flex-1 w-full mt-2 mb-2 flex flex-col">
-                        <table class="itinerary-table w-full text-[12px] border-t-2 border-b-2 border-slate-800">
+                        <table class="itinerary-table w-full border-t-2 border-b-2 border-slate-800">
                             <colgroup>
                                 <col width="15%"><col width="65%"><col width="20%">
                             </colgroup>
                             <thead>
-                                <tr class="print-bg-header bg-slate-100 text-slate-900 border-b-2 border-slate-800" style="height: 35px;">
+                                <tr id="thead-itinerary-row" class="print-bg-header bg-slate-100 text-slate-900 border-b-2 border-slate-800" style="height: 35px;">
                                     <th>일자</th><th>주요 일정</th><th>식사</th>
                                 </tr>
                             </thead>
@@ -248,15 +229,13 @@
                         </table>
                     </div>
                     
-                    <!-- 푸터 -->
-                    <div class="mt-2 text-center border-t border-slate-300 pt-2 flex-shrink-0">
+                    <div class="mt-auto text-center border-t border-slate-300 pt-2 flex-shrink-0">
                         <p class="text-[10px] text-slate-500 out-footer-text"></p>
                     </div>
                 </div>
 
                 <!-- ====== [페이지 2] 산출 내역서 ====== -->
                 <div class="a4-page" id="page-2">
-                    
                     <div class="flex justify-between items-start mb-5">
                         <div class="inline-block">
                             <table class="compact-table border-t-2 border-b-2 border-slate-800 border-l border-r border-slate-300 text-[12px]">
@@ -277,22 +256,15 @@
                         <p class="text-slate-500 font-bold mt-1 tracking-[0.2em] text-[10px] uppercase">Calculation Details</p>
                     </div>
 
-                    <!-- 산출내역 테이블 영역 -->
                     <div class="flex-1 w-full mt-2 mb-2 flex flex-col">
-                        <table class="estimate-table w-full text-[11px] text-center border-t-2 border-b-2 border-slate-800">
+                        <table class="estimate-table w-full text-[13px] text-center border-t-2 border-b-2 border-slate-800 leading-[1.6]">
                             <colgroup>
-                                <col width="10%"> <!-- 대분류: 13% -> 10% 축소 -->
-                                <col width="13%"> <!-- 항목: 15% -> 13% 축소 -->
-                                <col width="28%"> <!-- 세부 내용: 23% -> 28% 대폭 확장 -->
-                                <col width="7%">  <!-- 수량 -->
-                                <col width="12%"> <!-- 단가 -->
-                                <col width="16%"> <!-- 총금액 -->
-                                <col width="14%"> <!-- 비고 -->
+                                <col width="10%"><col width="13%"><col width="28%">
+                                <col width="7%"><col width="12%"><col width="16%"><col width="14%">
                             </colgroup>
                             <thead>
-                                <tr class="print-bg-header bg-slate-100 text-slate-900 border-b-2 border-slate-800" style="height: 35px;">
-                                    <th>대분류</th><th>항목</th><th>세부 내용</th>
-                                    <th>수량</th>
+                                <tr class="print-bg-header bg-slate-100 text-slate-900 border-b-2 border-slate-800 text-[14px]" style="height: 40px;">
+                                    <th>대분류</th><th>항목</th><th>세부 내용</th><th>수량</th>
                                     <th>단가(원)</th><th>총금액(원)</th><th>비고</th>
                                 </tr>
                             </thead>
@@ -302,7 +274,7 @@
                         </table>
                     </div>
 
-                    <div class="mt-2 flex-shrink-0">
+                    <div class="mt-auto flex-shrink-0">
                         <h4 class="font-bold text-[12px] text-slate-800 mb-1">1. 세금계산서 발행 관련 안내문</h4>
                         <p class="text-[11px] text-slate-600 leading-relaxed">
                             * 본 위탁용역의 특성상 항공권, 숙박비, 현지교통비 등은 당사가 직접 제공하는 서비스가 아닌, 제 3자와의 거래를 통한 수탁 대행 처리 항목으로 분류됩니다. 따라서, 당사는 전체 계약금액 기준의 세금계산서 발행이 불가하며, 국내 과세 대상 경비 중 <span class="text-red-600 font-bold">알선수수료</span> 등 자체수익에 대해서만 세금계산서를 발행함을 사전 안내드립니다.
@@ -318,6 +290,38 @@
     </div>
 
     <script>
+        // ================= 관광지 설명 자동완성 (POI DB) ================= //
+        const poiDB = {
+            "카멜리아힐": "동양 최대 규모의 아름다운 동백 수목원",
+            "비자림": "천년의 숲, 피톤치드 가득한 신비로운 힐링 산책",
+            "스카이워터쇼": "아찔하고 화려한 서커스 & 다이빙 공연",
+            "성산일출봉": "유네스코 세계자연유산, 바다 위에 우뚝 솟은 수성화산",
+            "오설록": "푸른 녹차밭과 여유로운 티뮤지엄 관람",
+            "이호테우": "제주 바다를 배경으로 한 이국적인 조랑말 등대 인생샷",
+            "새별오름": "들불축제로 유명한 억새가 장관을 이루는 제주의 대표 오름",
+            "에코랜드": "곶자왈 원시림을 달리는 낭만적인 클래식 기차여행",
+            "아르떼뮤지엄": "빛과 소리가 만드는 영원한 자연, 몰입형 미디어아트",
+            "아쿠아플라넷": "아시아 최대 규모의 프리미엄 해양 테마파크",
+            "우도": "소가 누워있는 모습을 닮은 제주의 아름다운 섬, 산호해수욕장",
+            "용두암": "용이 포효하며 바다에서 솟구치는 듯한 웅장한 기암괴석",
+            "절물자연휴양림": "하늘 높이 솟은 삼나무 숲길에서의 상쾌한 산림욕",
+            "천지연폭포": "하늘과 땅이 만나 이룬 연못, 야경이 아름다운 폭포",
+            "주상절리": "자연의 위대함이 조각한 웅장하고 신비로운 육각형 돌기둥",
+            "송악산": "탁 트인 바다와 마라도, 가파도를 조망할 수 있는 해안 둘레길"
+        };
+
+        function enrichItinerary(descText) {
+            let enriched = descText;
+            for (const [key, val] of Object.entries(poiDB)) {
+                // 키워드가 있고 괄호로 직접 설명을 적지 않은 경우에만 자동 추가
+                if (enriched.includes(key) && !enriched.includes(val) && !enriched.includes(key + ' (')) {
+                    const regex = new RegExp(key, 'g');
+                    enriched = enriched.replace(regex, `${key} <span class="text-teal-700 text-[0.85em] font-medium block mt-0.5">※ ${val}</span>`);
+                }
+            }
+            return enriched;
+        }
+
         // ================= 유틸리티 ================= //
         function escAttr(str = '') { return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
         const fmt = n => (n === 0 || n === '') ? '' : Number(n).toLocaleString();
@@ -330,13 +334,9 @@
             calculateAndRender();
         }
 
-        // =today() 엑셀 기능 구현
         function todayKorean() {
             const d = new Date();
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${y}. ${m}. ${day}`;
+            return `${d.getFullYear()}. ${String(d.getMonth() + 1).padStart(2, '0')}. ${String(d.getDate()).padStart(2, '0')}`;
         }
 
         function resolveTodayFormula(value) {
@@ -356,40 +356,30 @@
             return span;
         }
 
-        // ================= 디폴트 피드백 데이터 ================= //
+        // ================= 디폴트 데이터 ================= //
         const defaultData = {
             basic: {
                 agency: "jeju", clientName: "사북고등학교", docTitle: "제주도 테마여행", 
-                travelDate: "2026. 04. 01 ~ 04. 03 (2박 3일)", paxStr: "21명 (학생 19명 + 교사 2명)", issueDateRate: "=today() / 원화결제"
+                travelDate: "2026. 04. 01 ~ 04. 02 (1박 2일)", paxStr: "21명 (학생 19명 + 교사 2명)", issueDateRate: "=today() / 원화결제"
             },
             itineraries: [
-                { date: "4/1(수)", desc: "16시 이전 : 청주공항 도착 및 탑승수속\n14:10 : 청주공항 출발 (진에어)\n15:20 : 제주공항 도착 및 기사님 미팅\n이호테우말등대 & 무지개해안도로(인생샷)\n석식 (전복뚝배기)\n18:55 숙소 도착 및 체크인", meal: "석: 전복뚝배기", hotel: "아시아호텔 (4성급 2인실 10, 1인실 1)" },
-                { date: "4/2(목)", desc: "조식 (호텔식) 후 09:00 출발\n비자림 (신비의 숲 탐방)\n스카이워터쇼 (서커스&다이빙 공연)\n중식 (통갈치구이 세트)\n성산일출봉 (유네스코 자연유산)\n석식 (흑돼지구이 1인분)\n숙소 귀환 및 휴식", meal: "조: 호텔식\n중: 통갈치구이모듬\n석: 흑돼지구이", hotel: "아시아호텔" },
-                { date: "4/3(금)", desc: "조식 (호텔식) 후 09:00 체크아웃\n카멜리아힐 (곶자왈 기차여행)\n오설록 티뮤지엄 (녹차밭)\n중식 (해물탕+옥돔구이)\n새별해변 산책\n16:00 : 제주공항 도착 및 탑승수속\n17:30 : 제주공항 출발", meal: "조: 호텔식\n중: 해물탕+옥돔구이", hotel: "" },
-                { date: "", desc: "", meal: "", hotel: "" }, { date: "", desc: "", meal: "", hotel: "" }
+                { date: "4/1(수)", desc: "14:10 : 청주공항 출발\n15:20 : 제주공항 도착 및 미팅\n이호테우\n카멜리아힐\n석식 후 호텔 체크인", meal: "석: 전복뚝배기", hotel: "아시아호텔" },
+                { date: "4/2(목)", desc: "조식 후 출발\n비자림\n성산일출봉\n중식 후 공항 이동\n17:30 : 제주공항 출발", meal: "조: 호텔식\n중: 갈치구이", hotel: "" },
+                { date: "", desc: "", meal: "", hotel: "" }, { date: "", desc: "", meal: "", hotel: "" }, { date: "", desc: "", meal: "", hotel: "" }
             ],
             flights: [
-                { cat: "항공료", name: "항공료", desc: "진에어 왕복 (청주-제주)", qty: 21, krw: 120000, note: "유류+텍스 포함" },
-                { cat: "항공료", name: "발권수수료", desc: "여행사 발권수수료", qty: 21, krw: 5000, note: "" }
+                { cat: "항공료", name: "항공료", desc: "진에어 왕복", qty: 21, krw: 120000, note: "" }
             ],
             locals: [
-                { cat: "숙박료", name: "아시아호텔", desc: "4성급 (2인1실 기준) 2박", qty: 10, krw: 160000, note: "조식포함" },
-                { cat: "숙박료", name: "아시아호텔", desc: "4성급 (1인실 기사/인솔) 2박", qty: 1, krw: 240000, note: "싱글차지" },
-                { cat: "식대료", name: "중식료", desc: "2일차 (통갈치구이모듬세트)", qty: 21, krw: 35000, note: "" },
-                { cat: "식대료", name: "중식료", desc: "3일차 (해물탕+옥돔구이)", qty: 21, krw: 18000, note: "" },
-                { cat: "식대료", name: "석식료", desc: "1일차 (전복뚝배기)", qty: 21, krw: 15000, note: "" },
-                { cat: "식대료", name: "석식료", desc: "2일차 (흑돼지구이 1인분)", qty: 21, krw: 22000, note: "" },
-                { cat: "현지 차량", name: "대형버스 3일", desc: "*노팁/노옵션/노쇼핑 조건", qty: 1, krw: 1100000, note: "*기사 수고비 포함" },
-                { cat: "현지 차량", name: "주차료", desc: "3일 주차료", qty: 1, krw: 10000, note: "" },
-                { cat: "관광지입장료", name: "유료관광지", desc: "성인 전일정", qty: 21, krw: 34000, note: "입장료 일체" }
+                { cat: "숙박료", name: "아시아호텔", desc: "4성급 1박", qty: 10, krw: 160000, note: "조식포함" },
+                { cat: "현지 차량", name: "대형버스 2일", desc: "기사수고비 포함", qty: 1, krw: 800000, note: "" }
             ],
             domestics: [
-                { cat: "여행자보험", name: "국내여행자보험", desc: "1억원 가입조건", qty: 21, krw: 5000, note: "주민번호 필요" },
-                { cat: "진행수수료", name: "알선수수료", desc: "기획 및 예약 대행", qty: 1, krw: 950000, note: "" }
+                { cat: "진행수수료", name: "알선수수료", desc: "기획 대행", qty: 1, krw: 500000, note: "" }
             ]
         };
 
-        // ================= 동적 폼 생성 (★줄바꿈textarea 반영) ================= //
+        // ================= 동적 폼 생성 ================= //
         function renderInputGrids() {
             let itHtml = '';
             for(let i=0; i<5; i++) {
@@ -399,7 +389,7 @@
                             <input type="text" id="inp-i${i}-date" class="w-full border border-blue-300 rounded p-1.5 text-[11px] font-bold text-center" placeholder="예: 4/3(금)">
                             <input type="text" id="inp-i${i}-hotel" class="w-full border border-blue-400 rounded p-1.5 text-[10px] mt-1 text-center bg-white font-bold text-blue-800" placeholder="숙박 호텔명">
                         </div>
-                        <div class="col-span-6"><textarea id="inp-i${i}-desc" class="w-full border border-blue-300 rounded p-1.5 text-[11px] h-24 resize-none leading-relaxed" placeholder="상세 일정 (시간은 수기로 입력)"></textarea></div>
+                        <div class="col-span-6"><textarea id="inp-i${i}-desc" class="w-full border border-blue-300 rounded p-1.5 text-[11px] h-24 resize-none leading-relaxed" placeholder="상세 일정 (시간 수기 입력)"></textarea></div>
                         <div class="col-span-3"><textarea id="inp-i${i}-meal" class="w-full border border-blue-300 rounded p-1.5 text-[11px] h-24 resize-none leading-relaxed" placeholder="조:\n중:\n석:"></textarea></div>
                     </div>`;
             }
@@ -408,7 +398,6 @@
 
         function createRowHtml(type, i, cat, name, desc, qty, krw, note) {
             const bg = type==='f' ? 'bg-indigo-50 border-indigo-100' : (type==='l' ? 'bg-green-50 border-green-100' : 'bg-orange-50 border-orange-100');
-            // ★ 수정: 대분류, 항목, 세부내용, 비고를 textarea로 변경하여 Enter 줄바꿈(엑셀 Alt+Enter) 허용
             return `
                 <div class="slot-card ${type}-item ${bg} p-1.5 rounded border grid grid-cols-12 gap-1 items-center relative pr-6">
                     <button type="button" class="absolute right-1 top-1 text-red-400 hover:text-red-600 font-bold" onclick="this.parentElement.remove(); calculateAndRender();">✕</button>
@@ -421,17 +410,11 @@
                 </div>`;
         }
 
-        function addFlightRow(d = {cat:'',name:'',desc:'',qty:'',krw:'',note:''}) {
-            document.getElementById('flight-inputs-container').insertAdjacentHTML('beforeend', createRowHtml('f', Date.now(), d.cat, d.name, d.desc, d.qty, d.krw ? fmt(d.krw) : '', d.note));
-        }
-        function addLocalRow(d = {cat:'',name:'',desc:'',qty:'',krw:'',note:''}) {
-            document.getElementById('local-inputs-container').insertAdjacentHTML('beforeend', createRowHtml('l', Date.now(), d.cat, d.name, d.desc, d.qty, d.krw ? fmt(d.krw) : '', d.note));
-        }
-        function addDomesticRow(d = {cat:'',name:'',desc:'',qty:'',krw:'',note:''}) {
-            document.getElementById('domestic-inputs-container').insertAdjacentHTML('beforeend', createRowHtml('d', Date.now(), d.cat, d.name, d.desc, d.qty, d.krw ? fmt(d.krw) : '', d.note));
-        }
+        function addFlightRow(d = {cat:'',name:'',desc:'',qty:'',krw:'',note:''}) { document.getElementById('flight-inputs-container').insertAdjacentHTML('beforeend', createRowHtml('f', Date.now(), d.cat, d.name, d.desc, d.qty, d.krw ? fmt(d.krw) : '', d.note)); }
+        function addLocalRow(d = {cat:'',name:'',desc:'',qty:'',krw:'',note:''}) { document.getElementById('local-inputs-container').insertAdjacentHTML('beforeend', createRowHtml('l', Date.now(), d.cat, d.name, d.desc, d.qty, d.krw ? fmt(d.krw) : '', d.note)); }
+        function addDomesticRow(d = {cat:'',name:'',desc:'',qty:'',krw:'',note:''}) { document.getElementById('domestic-inputs-container').insertAdjacentHTML('beforeend', createRowHtml('d', Date.now(), d.cat, d.name, d.desc, d.qty, d.krw ? fmt(d.krw) : '', d.note)); }
 
-        // ================= 데이터 추출 및 바인딩 ================= //
+        // ================= 데이터 연동 ================= //
         function getFormData() {
             const data = { basic: {}, itineraries: [], flights: [], locals: [], domestics: [] };
             data.basic.agency = document.getElementById('inp-agency').value;
@@ -443,26 +426,18 @@
 
             for(let i=0; i<5; i++) {
                 data.itineraries.push({
-                    date: document.getElementById(`inp-i${i}-date`).value,
-                    hotel: document.getElementById(`inp-i${i}-hotel`).value,
-                    desc: document.getElementById(`inp-i${i}-desc`).value,
-                    meal: document.getElementById(`inp-i${i}-meal`).value
+                    date: document.getElementById(`inp-i${i}-date`).value, hotel: document.getElementById(`inp-i${i}-hotel`).value,
+                    desc: document.getElementById(`inp-i${i}-desc`).value, meal: document.getElementById(`inp-i${i}-meal`).value
                 });
             }
-            document.querySelectorAll('.f-item').forEach(el => {
-                data.flights.push({ cat: el.querySelector('.f-cat').value, name: el.querySelector('.f-name').value, desc: el.querySelector('.f-desc').value, qty: el.querySelector('.f-qty').value, krw: parseCurrency(el.querySelector('.f-krw').value), note: el.querySelector('.f-note').value });
-            });
-            document.querySelectorAll('.l-item').forEach(el => {
-                data.locals.push({ cat: el.querySelector('.l-cat').value, name: el.querySelector('.l-name').value, desc: el.querySelector('.l-desc').value, qty: el.querySelector('.l-qty').value, krw: parseCurrency(el.querySelector('.l-krw').value), note: el.querySelector('.l-note').value });
-            });
-            document.querySelectorAll('.d-item').forEach(el => {
-                data.domestics.push({ cat: el.querySelector('.d-cat').value, name: el.querySelector('.d-name').value, desc: el.querySelector('.d-desc').value, qty: el.querySelector('.d-qty').value, krw: parseCurrency(el.querySelector('.d-krw').value), note: el.querySelector('.d-note').value });
-            });
+            document.querySelectorAll('.f-item').forEach(el => data.flights.push({ cat: el.querySelector('.f-cat').value, name: el.querySelector('.f-name').value, desc: el.querySelector('.f-desc').value, qty: el.querySelector('.f-qty').value, krw: parseCurrency(el.querySelector('.f-krw').value), note: el.querySelector('.f-note').value }));
+            document.querySelectorAll('.l-item').forEach(el => data.locals.push({ cat: el.querySelector('.l-cat').value, name: el.querySelector('.l-name').value, desc: el.querySelector('.l-desc').value, qty: el.querySelector('.l-qty').value, krw: parseCurrency(el.querySelector('.l-krw').value), note: el.querySelector('.l-note').value }));
+            document.querySelectorAll('.d-item').forEach(el => data.domestics.push({ cat: el.querySelector('.d-cat').value, name: el.querySelector('.d-name').value, desc: el.querySelector('.d-desc').value, qty: el.querySelector('.d-qty').value, krw: parseCurrency(el.querySelector('.d-krw').value), note: el.querySelector('.d-note').value }));
             return data;
         }
 
         function setFormData(data) {
-            document.getElementById('inp-agency').value = data.basic.agency || 'tourmaker';
+            document.getElementById('inp-agency').value = data.basic.agency || 'jeju';
             document.getElementById('inp-clientName').value = data.basic.clientName || '';
             document.getElementById('inp-docTitle').value = data.basic.docTitle || '';
             document.getElementById('inp-travelDate').value = data.basic.travelDate || '';
@@ -490,58 +465,82 @@
             if(data.domestics) data.domestics.forEach(d => addDomesticRow(d));
         }
 
-        // ================= 렌더링 (A4 출력) ================= //
+        // ================= 렌더링 ================= //
         function getAgencyLogoHtml(agency) {
             if (agency === 'jeju') {
-                return `
-                    <div class="text-right leading-tight pt-1">
-                        <div class="font-black text-[22px] text-slate-800 tracking-widest">(주)제주테마투어</div>
-                        <div class="text-[12px] text-slate-500 font-bold mt-1">담당 : 문정희 (010-2645-7524)</div>
-                    </div>`;
+                return `<div class="text-right leading-tight pt-1"><div class="font-black text-[22px] text-slate-800 tracking-widest">(주)제주테마투어</div><div class="text-[12px] text-slate-500 font-bold mt-1">담당 : 문정희 (010-2645-7524)</div></div>`;
             }
             return `<img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHfgIX70O5k6Anuo0UgALIdaG9jSga9auHu3uyz0uEirylGPAJnjN_qQbvEGMUvPqUQf_g9FMNUHRxlDcUBf4vZ3Mpy4TnA9WxbmzWYK11gt2zuy_Irl4wctNFjcjLyPo0GPXV792o_J7L9guRMuDfeC1gy7USwywjYbECZgzcsHybuGRRAXAnO1eNmP8/s320/logo.png" alt="TOURMAKER" class="h-[40px] object-contain">`;
-        }
-
-        function getFooterHtml(agency) {
-            if (agency === 'jeju') {
-                return `[System Powered by TOURMAKER] 본 문서는 <strong>(주)제주테마투어</strong>의 기획과 <a href="http://tourmaker.kr" target="_blank" class="font-bold text-slate-800 hover:underline">투어메이커</a>의 트래블 테크 기술 제휴로 제작되었습니다.`;
-            }
-            return `[System Powered by TOURMAKER] 본 문서는 <strong>투어메이커</strong>의 기획과 트래블 테크 기술 제휴로 제작되었습니다.`;
         }
 
         function calculateAndRender() {
             const data = getFormData();
             const resolvedIssueDateRate = resolveTodayFormula(data.basic.issueDateRate);
             
-            // 헤더 정보 세팅
             document.querySelectorAll('.out-clientName').forEach(el => el.innerText = data.basic.clientName);
             document.querySelectorAll('.out-docTitle').forEach(el => el.innerText = data.basic.docTitle);
             document.querySelectorAll('.out-travelDate').forEach(el => el.innerText = data.basic.travelDate);
             document.querySelectorAll('.out-paxStr').forEach(el => el.innerText = data.basic.paxStr);
             document.querySelectorAll('.out-issueDateRate').forEach(el => el.innerText = resolvedIssueDateRate);
-
-            // 로고 세팅
-            const logoHtml = getAgencyLogoHtml(data.basic.agency);
-            const footerHtml = getFooterHtml(data.basic.agency);
             
-            document.querySelectorAll('.out-agency-logo').forEach(el => el.innerHTML = logoHtml);
+            document.querySelectorAll('.out-agency-logo').forEach(el => el.innerHTML = getAgencyLogoHtml(data.basic.agency));
+            const footerHtml = data.basic.agency === 'jeju' 
+                ? `[System Powered by TOURMAKER] 본 문서는 <strong>(주)제주테마투어</strong>의 기획과 <a href="http://tourmaker.kr" target="_blank" class="font-bold text-slate-800 hover:underline">투어메이커</a>의 트래블 테크 기술 제휴로 제작되었습니다.`
+                : `[System Powered by TOURMAKER] 본 문서는 <strong>투어메이커</strong>의 기획과 트래블 테크 기술 제휴로 제작되었습니다.`;
             document.querySelectorAll('.out-footer-text').forEach(el => el.innerHTML = footerHtml);
 
-            // 1. 일정표 렌더링
-            let itHtml = '';
+            // 1. 일정표 렌더링 (동적 글자 크기 및 여백 반영)
             const visibleIt = data.itineraries.filter(item => String(item.date || '').trim() !== '');
+            let itHtml = '';
+            
+            // 일정 길이에 따른 폰트, 패딩 조절 클래스
+            let fontClass = "text-[13px]";
+            let paddingClass = "py-3"; 
+            let headerFontClass = "text-[13px]";
+            let hotelFontClass = "text-[12px]";
+            let lineHeightClass = "leading-[1.6]";
+            
+            if (visibleIt.length <= 2) {
+                fontClass = "text-[16px]"; // 1박2일 폰트 더 키움 (기존 15px -> 16px)
+                paddingClass = "py-4";     // 위아래 여백 대폭 축소 (기존 py-8 -> py-4)
+                headerFontClass = "text-[15px]";
+                hotelFontClass = "text-[14px]";
+                lineHeightClass = "leading-[1.7]";
+            } else if (visibleIt.length === 3) {
+                fontClass = "text-[14px]"; // 2박3일 폰트 약간 키움
+                paddingClass = "py-3";     // 여백 축소 (기존 py-5 -> py-3)
+                headerFontClass = "text-[14px]";
+                hotelFontClass = "text-[13px]";
+                lineHeightClass = "leading-[1.6]";
+            } else if (visibleIt.length >= 4) {
+                fontClass = "text-[12px]"; // 3박 이상
+                paddingClass = "py-2";     // 여백 축소 (기존 py-3 -> py-2)
+                headerFontClass = "text-[13px]";
+                hotelFontClass = "text-[11.5px]";
+                lineHeightClass = "leading-[1.5]";
+            }
+
+            // 헤더 폰트 사이즈 동적 적용
+            const theadRow = document.getElementById('thead-itinerary-row');
+            if (theadRow) {
+                theadRow.className = `print-bg-header bg-slate-100 text-slate-900 border-b-2 border-slate-800 ${headerFontClass}`;
+            }
 
             if (visibleIt.length === 0) {
-                itHtml = `<tr><td colspan="3" class="text-center py-10 text-slate-400 h-full">입력된 일정이 없습니다.</td></tr>`;
+                itHtml = `<tr><td colspan="3" class="text-center py-10 text-slate-400">입력된 일정이 없습니다.</td></tr>`;
             } else {
                 visibleIt.forEach((item, idx) => {
-                    const hotelRow = item.hotel ? `<tr class="hotel-row"><td colspan="2" class="px-5 font-bold bg-blue-50 text-blue-900 border-t border-slate-300">숙소 : ${escAttr(item.hotel)}</td></tr>` : '';
+                    const hotelRow = item.hotel ? `<tr class="hotel-row"><td colspan="2" class="px-5 font-bold bg-blue-50 text-blue-900 border-t border-slate-300 py-2 ${hotelFontClass}">숙소 : ${escAttr(item.hotel)}</td></tr>` : '';
                     const rs = item.hotel ? 2 : 1;
+                    
+                    // POI 설명 자동 삽입 로직 적용
+                    const enrichedDesc = enrichItinerary(escAttr(item.desc));
+
                     itHtml += `
                         <tr class="data-row ${idx%2===0 ? 'bg-white' : 'print-bg-gray bg-slate-50'}">
-                            <td rowspan="${rs}" class="text-center font-extrabold text-slate-800 text-[14px] w-[15%]">${escAttr(item.date)}</td>
-                            <td class="text-left px-5 whitespace-pre-line leading-[1.8] text-[14px] text-slate-900 w-[65%] font-medium">${escAttr(item.desc)}</td>
-                            <td class="text-center text-blue-900 font-bold text-[14px] whitespace-pre-line leading-[1.8] w-[20%]">${escAttr(item.meal)}</td>
+                            <td rowspan="${rs}" class="text-center font-extrabold text-slate-800 ${fontClass} ${paddingClass} align-top">${escAttr(item.date)}</td>
+                            <td class="text-left px-5 whitespace-pre-line ${lineHeightClass} text-slate-900 ${fontClass} ${paddingClass} font-medium align-top">${enrichedDesc}</td>
+                            <td class="text-center text-blue-900 font-bold whitespace-pre-line ${lineHeightClass} ${fontClass} ${paddingClass} align-top">${escAttr(item.meal)}</td>
                         </tr>
                         ${hotelRow}
                     `;
@@ -549,7 +548,7 @@
             }
             document.getElementById('tbody-itinerary').innerHTML = itHtml;
 
-            // 2. 산출내역 렌더링 (★수정: textarea 줄바꿈 허용(whitespace-pre-line) 적용)
+            // 2. 산출내역 렌더링
             function buildTableGroup(sumLabel, items) {
                 let html = '';
                 let subTotal = 0;
@@ -558,34 +557,30 @@
                 validItems.forEach((item, i) => {
                     const rowTotal = item.qty * item.krw;
                     subTotal += rowTotal;
-
                     const catSpan = getRowspan(validItems, i, 'cat');
                     const nameSpan = getRowspan(validItems, i, 'cat', 'name');
 
                     html += `<tr class="bg-white hover:bg-slate-50 transition h-auto">`; 
-                    
                     if (i === 0 || validItems[i].cat !== validItems[i-1].cat) {
-                        html += `<td rowspan="${catSpan}" class="text-center font-bold print-bg-gray bg-slate-50 text-slate-800 whitespace-pre-line leading-[1.4]">${escAttr(item.cat)}</td>`;
+                        html += `<td rowspan="${catSpan}" class="text-center font-bold print-bg-gray bg-slate-50 text-slate-800 whitespace-pre-line leading-[1.5] py-2.5">${escAttr(item.cat)}</td>`;
                     }
                     if (i === 0 || validItems[i].cat !== validItems[i-1].cat || validItems[i].name !== validItems[i-1].name) {
-                        html += `<td rowspan="${nameSpan}" class="text-center font-medium whitespace-pre-line leading-[1.4]">${escAttr(item.name)}</td>`;
+                        html += `<td rowspan="${nameSpan}" class="text-center font-medium whitespace-pre-line leading-[1.5] py-2.5">${escAttr(item.name)}</td>`;
                     }
-
-                    const isRed = item.note.includes('*') || item.note.includes('포함');
-                    const noteStyle = isRed ? 'text-red-600 font-bold' : 'text-slate-600';
+                    const noteStyle = (item.note.includes('*') || item.note.includes('포함')) ? 'text-red-600 font-bold' : 'text-slate-600';
 
                     html += `
-                        <td class="text-center px-2 font-medium whitespace-pre-line leading-[1.4]">${escAttr(item.desc)}</td>
-                        <td class="text-center font-bold">${fmt(item.qty)}</td>
-                        <td class="text-right px-2">${fmt(item.krw)}</td>
-                        <td class="text-right px-2 font-extrabold text-slate-900">${fmtT(rowTotal)}</td>
-                        <td class="text-center text-[10.5px] ${noteStyle} whitespace-pre-line leading-[1.4]">${escAttr(item.note)}</td>
+                        <td class="text-center px-2 py-2.5 font-medium whitespace-pre-line leading-[1.5]">${escAttr(item.desc)}</td>
+                        <td class="text-center font-bold py-2.5">${fmt(item.qty)}</td>
+                        <td class="text-right px-2 py-2.5">${fmt(item.krw)}</td>
+                        <td class="text-right px-2 py-2.5 font-extrabold text-slate-900">${fmtT(rowTotal)}</td>
+                        <td class="text-center text-[12px] ${noteStyle} whitespace-pre-line leading-[1.5] py-2.5">${escAttr(item.note)}</td>
                     </tr>`;
                 });
 
                 if(validItems.length > 0) {
                     html += `
-                    <tr class="print-bg-yellow bg-yellow-50 font-bold border-b-2 border-slate-400" style="height: 35px;">
+                    <tr class="print-bg-yellow bg-yellow-50 font-bold border-b-2 border-slate-400 text-[13.5px]" style="height: 38px;">
                         <td colspan="5" class="text-center align-middle">${sumLabel}</td>
                         <td class="text-right px-2 text-slate-900 align-middle">${fmtT(subTotal)}</td>
                         <td class="print-bg-yellow bg-yellow-50"></td>
@@ -605,14 +600,14 @@
             const pureTotal = lRes.subTotal + dRes.subTotal;
 
             estHtml += `
-                <tr class="print-bg-header bg-slate-100 font-extrabold border-t-2 border-slate-800" style="height: 40px;">
-                    <td colspan="5" class="text-center align-middle text-[13px]">(1)+(2)+(3) 전 체 합 계 금 액</td>
-                    <td class="text-right px-2 text-[14px] align-middle text-blue-800 tracking-tight">₩ ${fmtT(gTotal)}</td>
+                <tr class="print-bg-header bg-slate-100 font-extrabold border-t-2 border-slate-800" style="height: 45px;">
+                    <td colspan="5" class="text-center align-middle text-[14.5px]">(1)+(2)+(3) 전 체 합 계 금 액</td>
+                    <td class="text-right px-2 text-[16px] align-middle text-blue-800 tracking-tight">₩ ${fmtT(gTotal)}</td>
                     <td class="print-bg-header bg-slate-100"></td>
                 </tr>
-                <tr class="print-bg-header bg-slate-100 font-extrabold border-b-2 border-slate-800" style="height: 38px;">
-                    <td colspan="5" class="text-center align-middle text-slate-600 text-[12px]">(2)+(3) 행 사 비 용 합 계 <span class="font-normal text-[10px] text-slate-400 ml-1">(항공료 제외)</span></td>
-                    <td class="text-right px-2 text-[13px] text-slate-700 align-middle tracking-tight">₩ ${fmtT(pureTotal)}</td>
+                <tr class="print-bg-header bg-slate-100 font-extrabold border-b-2 border-slate-800" style="height: 42px;">
+                    <td colspan="5" class="text-center align-middle text-slate-600 text-[13px]">(2)+(3) 행 사 비 용 합 계 <span class="font-normal text-[11px] text-slate-400 ml-1">(항공료 제외)</span></td>
+                    <td class="text-right px-2 text-[15px] text-slate-700 align-middle tracking-tight">₩ ${fmtT(pureTotal)}</td>
                     <td class="print-bg-header bg-slate-100"></td>
                 </tr>
             `;
@@ -621,35 +616,120 @@
             document.getElementById('live-total-amount').textContent = fmtT(gTotal);
         }
 
-        // ================= 백업 및 복구 로직 ================= //
-        function exportData() {
-            const data = localStorage.getItem('tourmaker_presets');
-            if (!data || data === '{}') return alert('저장할 데이터가 없습니다. 먼저 템플릿을 만들어주세요.');
-            const blob = new Blob([data], {type: 'application/json'});
+        // ================= 한글/워드(DOC) 다운로드 로직 ================= //
+        function exportToWord() {
+            const data = getFormData();
+            if(!data.basic.clientName) return alert('고객명(기관명)을 먼저 입력해주세요.');
+
+            // 한글(HWP) 및 워드 호환을 위한 MS-Office 네임스페이스 및 HTML 구성
+            const header = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head>
+                    <meta charset='utf-8'>
+                    <title>견적서</title>
+                    <style>
+                        body { font-family: 'Malgun Gothic', 'Dotum', sans-serif; }
+                        table { border-collapse: collapse; width: 100%; margin-bottom: 30px; }
+                        th, td { border: 1px solid #333; padding: 8px; font-size: 13px; text-align: center; vertical-align: middle; }
+                        .title { font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 20px; }
+                        .left { text-align: left; }
+                        .right { text-align: right; }
+                        .bg-gray { background-color: #f2f2f2; }
+                        .bold { font-weight: bold; }
+                    </style>
+                </head>
+                <body>
+            `;
+            
+            // 1. 기본정보 및 일정표 파트
+            let htmlBody = `
+                <div class="title">행사 상세 일정표</div>
+                <table>
+                    <tr><th class="bg-gray" width="20%">고객명</th><td class="left bold" width="80%">${escAttr(data.basic.clientName)}</td></tr>
+                    <tr><th class="bg-gray">행사명</th><td class="left bold">${escAttr(data.basic.docTitle)}</td></tr>
+                    <tr><th class="bg-gray">여행일</th><td class="left">${escAttr(data.basic.travelDate)}</td></tr>
+                </table>
+                <table>
+                    <tr>
+                        <th class="bg-gray" width="15%">일자</th>
+                        <th class="bg-gray" width="65%">주요 일정</th>
+                        <th class="bg-gray" width="20%">식사/숙박</th>
+                    </tr>
+            `;
+            
+            data.itineraries.forEach(item => {
+                if(item.date.trim()) {
+                    // 줄바꿈을 <br>로 변환
+                    const descBR = enrichItinerary(escAttr(item.desc)).replace(/\n/g, '<br>');
+                    const mealBR = escAttr(item.meal).replace(/\n/g, '<br>');
+                    const hotelRow = item.hotel ? `<br><span class="bold">[숙소] ${escAttr(item.hotel)}</span>` : '';
+                    htmlBody += `
+                        <tr>
+                            <td class="bold">${escAttr(item.date)}</td>
+                            <td class="left">${descBR}</td>
+                            <td>${mealBR}${hotelRow}</td>
+                        </tr>
+                    `;
+                }
+            });
+            htmlBody += `</table><br style="page-break-before: always; clear: both;" />`; // 페이지 나누기
+
+            // 2. 산출내역서 파트
+            htmlBody += `
+                <div class="title">가격 산출 내역서</div>
+                <table>
+                    <tr><th class="bg-gray" width="20%">작성일자</th><td class="left bold" width="80%">${resolveTodayFormula(data.basic.issueDateRate)}</td></tr>
+                    <tr><th class="bg-gray">여행인원</th><td class="left">${escAttr(data.basic.paxStr)}</td></tr>
+                </table>
+                <table>
+                    <tr>
+                        <th class="bg-gray">대분류</th><th class="bg-gray">항목</th><th class="bg-gray">세부 내용</th>
+                        <th class="bg-gray">수량</th><th class="bg-gray">단가(원)</th><th class="bg-gray">총금액(원)</th><th class="bg-gray">비고</th>
+                    </tr>
+            `;
+
+            let grandTotal = 0;
+            const allItems = [...data.flights, ...data.locals, ...data.domestics].filter(i => i.cat.trim() || i.name.trim());
+            allItems.forEach(item => {
+                const total = item.qty * item.krw;
+                grandTotal += total;
+                htmlBody += `
+                    <tr>
+                        <td>${escAttr(item.cat)}</td><td>${escAttr(item.name)}</td><td class="left">${escAttr(item.desc)}</td>
+                        <td>${fmt(item.qty)}</td><td class="right">${fmt(item.krw)}</td><td class="right bold">${fmtT(total)}</td>
+                        <td style="font-size:11px;">${escAttr(item.note)}</td>
+                    </tr>
+                `;
+            });
+            
+            htmlBody += `
+                    <tr>
+                        <td colspan="5" class="bg-gray bold text-center">전 체 합 계 금 액</td>
+                        <td class="right bold" style="font-size:15px; color:#1e40af;">₩ ${fmtT(grandTotal)}</td>
+                        <td class="bg-gray"></td>
+                    </tr>
+                </table>
+                <div style="font-size: 11px; color: #666; margin-top: 20px;">
+                    * 본 위탁용역의 특성상 수탁 대행 처리 항목으로 분류되어, 국내 과세 대상 경비 중 알선수수료 등 자체수익에 대해서만 세금계산서를 발행합니다.
+                </div>
+            `;
+
+            const footer = "</body></html>";
+            const sourceHTML = header + htmlBody + footer;
+            
+            // Blob 및 다운로드 처리 (DOC 확장자 사용 시 한글/워드 호환)
+            const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url;
-            a.download = `tourmaker_jeju_presets_${new Date().toISOString().slice(0,10)}.json`;
-            a.click(); URL.revokeObjectURL(url);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `${data.basic.clientName}_제주행사일정견적.doc`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
 
-        function importData(e) {
-            const file = e.target.files[0];
-            if(!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const json = JSON.parse(e.target.result);
-                    const currentData = JSON.parse(localStorage.getItem('tourmaker_presets') || '{}');
-                    localStorage.setItem('tourmaker_presets', JSON.stringify({ ...currentData, ...json }));
-                    updatePresetDropdown();
-                    alert('파일 데이터를 성공적으로 불러왔습니다.');
-                } catch(err) { alert('불러올 수 없는 파일 형식입니다.'); }
-            };
-            reader.readAsText(file);
-            e.target.value = '';
-        }
-
-        // ================= 템플릿 관리 (보안/안정성 개선) ================= //
+        // ================= 기존 관리 로직 (템플릿, 인쇄 등) ================= //
         function updatePresetDropdown(filterText = '') {
             const select = document.getElementById('preset-select');
             const presets = JSON.parse(localStorage.getItem('tourmaker_presets') || '{}');
@@ -657,9 +737,7 @@
             Object.keys(presets).sort().forEach(key => {
                 if (key.toLowerCase().includes(filterText.toLowerCase())) {
                     const opt = document.createElement('option');
-                    opt.value = key;
-                    opt.textContent = key;
-                    select.appendChild(opt);
+                    opt.value = key; opt.textContent = key; select.appendChild(opt);
                 }
             });
         }
@@ -670,8 +748,7 @@
             let presets = JSON.parse(localStorage.getItem('tourmaker_presets') || '{}');
             presets[name] = getFormData();
             localStorage.setItem('tourmaker_presets', JSON.stringify(presets));
-            updatePresetDropdown();
-            document.getElementById('preset-select').value = name;
+            updatePresetDropdown(); document.getElementById('preset-select').value = name;
             alert(`[${name}] 저장되었습니다.`);
         }
         function loadPreset() {
@@ -685,10 +762,8 @@
             if(!name) return;
             if(confirm(`[${name}] 삭제하시겠습니까?`)) {
                 let presets = JSON.parse(localStorage.getItem('tourmaker_presets') || '{}');
-                delete presets[name];
-                localStorage.setItem('tourmaker_presets', JSON.stringify(presets));
-                updatePresetDropdown();
-                alert('삭제되었습니다.');
+                delete presets[name]; localStorage.setItem('tourmaker_presets', JSON.stringify(presets));
+                updatePresetDropdown(); alert('삭제되었습니다.');
             }
         }
         function clearForm() {
@@ -696,37 +771,42 @@
             setFormData({ basic: { issueDateRate: '=today() / 원화결제' }, itineraries:[], flights:[], locals:[], domestics:[] });
             calculateAndRender();
         }
+        function exportData() {
+            const data = localStorage.getItem('tourmaker_presets');
+            if (!data || data === '{}') return alert('저장할 데이터가 없습니다.');
+            const blob = new Blob([data], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url;
+            a.download = `tourmaker_jeju_presets_${new Date().toISOString().slice(0,10)}.json`;
+            a.click(); URL.revokeObjectURL(url);
+        }
+        function importData(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    const currentData = JSON.parse(localStorage.getItem('tourmaker_presets') || '{}');
+                    localStorage.setItem('tourmaker_presets', JSON.stringify({ ...currentData, ...json }));
+                    updatePresetDropdown(); alert('성공적으로 불러왔습니다.');
+                } catch(err) { alert('불러올 수 없는 파일 형식입니다.'); }
+            };
+            reader.readAsText(file); e.target.value = '';
+        }
 
-        // ================= 인쇄 제어 (필수값 검증) ================= //
         function handlePrint() {
             const data = getFormData();
-            
             if (!data.basic.clientName.trim() || !data.basic.docTitle.trim()) {
-                alert('⚠️ 고객명(기관명)과 행사명은 필수 입력 항목입니다.');
-                return;
-            }
-            
-            const hasItinerary = data.itineraries.some(i => i.date.trim() !== '');
-            const hasEstimate = data.flights.length > 0 || data.locals.length > 0 || data.domestics.length > 0;
-            
-            if (!hasItinerary && !hasEstimate) {
-                alert('⚠️ 일정이나 산출내역을 최소 1개 이상 입력해야 출력할 수 있습니다.');
-                return;
+                alert('⚠️ 고객명과 행사명은 필수 입력 항목입니다.'); return;
             }
             window.print();
         }
 
-        // ================= 초기화 ================= //
         window.onload = () => {
-            renderInputGrids();
-            updatePresetDropdown();
-            setFormData(defaultData);
-            calculateAndRender();
-            
+            renderInputGrids(); updatePresetDropdown(); setFormData(defaultData); calculateAndRender();
             document.getElementById('input-panel').addEventListener('input', (e) => {
-                if (!e.target.classList.contains('amount')) {
-                    calculateAndRender();
-                }
+                if (!e.target.classList.contains('amount')) calculateAndRender();
             });
         };
     </script>
