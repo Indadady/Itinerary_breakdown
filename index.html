@@ -17,9 +17,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-        
+
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
         body { font-family: 'Pretendard', 'Malgun Gothic', sans-serif; background-color: #f1f5f9; color: #0f172a; overflow: hidden; }
-        
+
         /* 스크롤바 커스텀 */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f8fafc; }
@@ -28,29 +30,86 @@
 
         /* 레이아웃 (좌측 입력, 우측 미리보기) */
         .app-container { display: flex; height: calc(100vh - 56px); width: 100vw; }
-        
+
         /* [좌측] 입력 패널 */
-        .input-panel { flex: 4; min-width: 480px; max-width: 550px; background-color: white; border-right: 1px solid #cbd5e1; overflow-y: auto; padding: 24px; box-shadow: 4px 0 15px rgba(0,0,0,0.03); z-index: 10; }
+        .input-panel {
+            flex: 4; min-width: 480px; max-width: 550px; background-color: white;
+            border-right: 1px solid #cbd5e1; overflow-y: auto; padding: 24px;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.03); z-index: 10;
+        }
 
         /* [우측] 미리보기/편집 패널 */
-        .preview-panel { flex: 6; background-color: #e2e8f0; overflow-y: auto; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; }
-        
-        /* A4 용지 기본 세팅 (인쇄 최적화 - 강제 늘림 제거) */
+        .preview-panel {
+            flex: 6; background-color: #e2e8f0; overflow-y: auto; padding: 40px 20px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* A4 용지 기본 세팅 */
         .a4-sheet { 
-            width: 210mm; min-height: 297mm; background: white; padding: 15mm 12mm; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 30px; border-radius: 4px;
-            display: block; position: relative;
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            padding: 15mm 12mm;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border-radius: 4px;
+            display: block;
+            position: relative;
+            box-sizing: border-box;
+        }
+        .a4-sheet:last-child { margin-bottom: 0; }
+
+        /* 웹 편집 모드에서 일정표 하단 잘림 방지 */
+        #page-1 {
+            height: auto;
+            overflow: visible;
+            transition: min-height 0.18s ease, box-shadow 0.18s ease;
+        }
+        #page-1.preview-expanded {
+            box-shadow: 0 14px 32px rgba(15,23,42,0.12);
+        }
+        #page-1::after {
+            content: '';
+            display: block;
+            height: 18mm;
+        }
+        .itinerary-overflow-note {
+            display: none;
+            margin-top: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #92400e;
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            border-radius: 8px;
+            padding: 8px 10px;
+            line-height: 1.45;
+        }
+        #page-1.preview-expanded .itinerary-overflow-note {
+            display: block;
         }
 
         /* 테이블 기본 */
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th, td { border: 1px solid #94a3b8; padding: 6px; word-break: break-word; }
-        th { background-color: #f8fafc; font-weight: 700; color: #1e293b; text-align: center; }
-        
+        thead { display: table-header-group; }
+        tfoot { display: table-footer-group; }
+        th, td {
+            border: 1px solid #94a3b8;
+            padding: 6px;
+            word-break: break-word;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #f8fafc;
+            font-weight: 700;
+            color: #1e293b;
+            text-align: center;
+        }
+
         /* 테이블 테두리 디자인 */
         .itinerary-table { border-top: 3px solid #0f172a; border-bottom: 3px solid #0f172a; margin-top: 10px; }
         .itinerary-table tbody td { vertical-align: middle !important; }
-        
+
         .cost-table { border-top: 3px solid #0f172a; border-bottom: 3px solid #0f172a; margin-top: 10px; }
         .cost-table tbody td { vertical-align: middle; }
         .subtotal-row td { background-color: #f1f5f9; font-weight: bold; border-bottom: 2px solid #64748b; }
@@ -62,7 +121,7 @@
         .input-label { display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px; }
         .input-field { width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 10px; font-size: 13px; outline: none; transition: 0.2s; background: white; }
         .input-field:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
-        
+
         /* 비용 입력 카드 2줄 레이아웃 */
         .card-box { background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; margin-bottom: 10px; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: border 0.2s; }
         .card-box:hover { border-color: #3b82f6; }
@@ -73,21 +132,31 @@
         .btn-primary { background: #1e293b; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; }
         .btn-primary:hover { background: #0f172a; }
         .btn-action { background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn-action:hover { background: #1d4ed8; }
 
         /* 인라인 편집기 (div contenteditable) */
-        .edit-input { 
-            width: 100%; background: transparent; border: 1px solid transparent; outline: none; 
-            font-family: inherit; font-size: inherit; font-weight: inherit; color: inherit; 
-            line-height: 1.6; transition: border 0.2s, background 0.2s; border-radius: 4px; padding: 4px; 
-            white-space: pre-wrap; word-break: keep-all; min-height: 24px;
+        .edit-input {
+            width: 100%;
+            background: transparent;
+            border: 1px solid transparent;
+            outline: none;
+            font-family: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+            color: inherit;
+            line-height: 1.6;
+            transition: border 0.2s, background 0.2s;
+            border-radius: 4px;
+            padding: 4px;
+            white-space: pre-wrap;
+            word-break: keep-all;
+            min-height: 24px;
         }
         .edit-input:hover, .edit-input:focus { border: 1px dashed #93c5fd; background: #eff6ff; }
-        
+
         /* 툴바 및 액션 버튼 */
         .preset-btn { font-size: 11px; padding: 4px 10px; border-radius: 4px; font-weight: 700; border: 1px solid #cbd5e1; color: #475569; background: white; cursor: pointer; transition: 0.2s; }
         .preset-btn:hover, .preset-btn.active { background: #1e293b; color: white; border-color: #1e293b; }
-        
+
         .action-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; border-radius: 4px; width: 32px; height: 36px; line-height: 1.1; transition: 0.2s; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .btn-del-row { background: #fef2f2; color: #ef4444; border: 1px solid #fca5a5; } .btn-del-row:hover { background: #ef4444; color: white; }
         .btn-hotel-row { background: #eff6ff; color: #3b82f6; border: 1px solid #93c5fd; } .btn-hotel-row:hover { background: #3b82f6; color: white; }
@@ -100,28 +169,184 @@
         .btn-tm-load { background: #475569; color: white; } .btn-tm-load:hover { background: #334155; }
         .btn-tm-del { background: white; color: #ef4444; border-color: #fca5a5; } .btn-tm-del:hover { background: #fef2f2; }
 
+        .print-only { display: none; }
+
+        .calc-notice { margin-top: 16px; }
+        .calc-powered { margin-top: 12px; }
+
         /* === 고품질 인쇄(PDF) 대응 === */
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+
         @media print {
-            body { background: white !important; overflow: visible !important; }
-            .top-nav, .input-panel, .no-print, .action-btn-container { display: none !important; }
-            .app-container { height: auto !important; display: block !important; }
-            .preview-panel { padding: 0 !important; background: white !important; display: block !important; }
-            
-            /* A4 용지 1장 단위 고정 및 여백 초기화 */
-            .a4-sheet { 
-                box-shadow: none !important; margin: 0 !important; padding: 10mm 12mm !important; 
-                width: 100% !important; min-height: 297mm !important; height: 297mm !important;
-                page-break-after: always; overflow: hidden !important; display: block !important;
+            html, body {
+                width: auto !important;
+                min-width: 0 !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+                overflow: visible !important;
             }
-            
-            .edit-input { border: none !important; background: transparent !important; padding: 0 !important; }
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            
-            /* 테이블 테두리 정밀 제어 및 자연스러운 여백 */
-            .itinerary-table, .cost-table { border-top: 2px solid #000 !important; border-bottom: 2px solid #000 !important; margin-top: 10px !important; }
-            th, td { border: 1px solid #000 !important; padding: 6px !important; }
-            .subtotal-row td { background-color: #f1f5f9 !important; }
-            th { background-color: #f8fafc !important; }
+
+            body {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+                font-size: 12px;
+                line-height: 1.45;
+            }
+
+            .top-nav, .input-panel, .no-print, .action-btn-container, .itinerary-overflow-note {
+                display: none !important;
+            }
+
+            .app-container {
+                height: auto !important;
+                display: block !important;
+                width: 100% !important;
+            }
+
+            .preview-panel {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 auto !important;
+                background: white !important;
+                overflow: visible !important;
+            }
+
+            .a4-sheet {
+                width: 210mm !important;
+                min-height: 297mm !important;
+                height: auto !important;
+                margin: 0 auto !important;
+                padding: 12mm 12mm 14mm 12mm !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                overflow: visible !important;
+                position: relative !important;
+                left: auto !important;
+                right: auto !important;
+                transform: none !important;
+                transform-origin: top center !important;
+                page-break-after: always !important;
+                break-after: page !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid-page !important;
+            }
+            .a4-sheet:last-child {
+                page-break-after: auto !important;
+                break-after: auto !important;
+            }
+
+            #page-1::after {
+                display: none !important;
+            }
+
+            table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                table-layout: fixed !important;
+            }
+
+            thead { display: table-header-group !important; }
+            tfoot { display: table-footer-group !important; }
+
+            table, thead, tbody, tfoot, tr, td, th, p, h1, h2, h3, h4, h5, h6, .subtotal-row {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            .itinerary-table, .cost-table {
+                border-top: 2px solid #000 !important;
+                border-bottom: 2px solid #000 !important;
+                margin-top: 8px !important;
+            }
+
+            th, td {
+                border: 1px solid #000 !important;
+                padding: 5px 6px !important;
+                color: #000 !important;
+            }
+
+            th {
+                background-color: #f3f4f6 !important;
+            }
+
+            .subtotal-row td {
+                background-color: #eef2f7 !important;
+            }
+
+            .edit-input {
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+                min-height: auto !important;
+            }
+
+            img, svg {
+                max-width: 100% !important;
+                image-rendering: -webkit-optimize-contrast;
+                print-color-adjust: exact !important;
+            }
+
+            a {
+                color: inherit !important;
+                text-decoration: none !important;
+            }
+
+            #page-2 {
+                padding-top: 9mm !important;
+                padding-bottom: 18mm !important;
+            }
+
+            #page-2 .calc-page-title {
+                margin-bottom: 10px !important;
+            }
+
+            #page-2 .cost-table {
+                margin-top: 6px !important;
+            }
+
+            #page-2 .cost-table th,
+            #page-2 .cost-table td {
+                padding-top: 4px !important;
+                padding-bottom: 4px !important;
+            }
+
+            #page-2 .calc-notice {
+                margin-top: 10px !important;
+                padding-top: 0 !important;
+            }
+
+            #page-2 .calc-notice-title {
+                margin-bottom: 3px !important;
+                font-size: 11px !important;
+                line-height: 1.3 !important;
+            }
+
+            #page-2 .calc-notice-text {
+                font-size: 10.5px !important;
+                line-height: 1.4 !important;
+            }
+
+            #page-2 .calc-powered {
+                margin-top: 8px !important;
+                padding-top: 5px !important;
+                padding-bottom: 0 !important;
+            }
+
+            #page-2 .calc-powered p {
+                font-size: 10px !important;
+                line-height: 1.35 !important;
+            }
+
+            .print-only { display: block !important; }
         }
     </style>
 </head>
@@ -289,11 +514,12 @@
                         <!-- JS 렌더링 -->
                     </tbody>
                 </table>
+                <div class="itinerary-overflow-note no-print">일정 설명이 길어지면 웹 미리보기에서 하단 여백을 자동으로 늘려 잘려 보이지 않게 처리합니다. 인쇄 시에는 실제 A4 기준으로 다시 정렬됩니다.</div>
             </div>
 
             <!-- [2페이지] 산출내역서 -->
             <div class="a4-sheet" id="page-2">
-                <div class="text-center mb-4">
+                <div class="text-center mb-4 calc-page-title">
                     <h3 class="text-[24px] font-black tracking-[0.2em] text-slate-900 border-b-[2px] border-slate-900 inline-block pb-1 px-8">가격 산출 내역서</h3>
                     <p class="text-[10px] font-bold text-slate-500 tracking-[0.3em] mt-1">CALCULATION DETAILS</p>
                 </div>
@@ -320,13 +546,13 @@
                 </table>
                 
                 <!-- 하단 안내문 -->
-                <div class="mt-6 pt-2">
-                    <p class="text-[12px] font-bold text-slate-800 mb-1">1. 세금계산서 발행 관련 안내문</p>
-                    <p class="text-[11.5px] text-slate-600 leading-relaxed text-justify">
+                <div class="mt-4 pt-1 calc-notice">
+                    <p class="text-[12px] font-bold text-slate-800 mb-1 calc-notice-title">1. 세금계산서 발행 관련 안내문</p>
+                    <p class="text-[11.5px] text-slate-600 leading-relaxed text-justify calc-notice-text">
                         * 본 위탁용역의 특성상 항공권, 숙박비, 현지교통비 등은 당사가 직접 제공하는 서비스가 아닌, 제 3자와의 거래를 통한 수탁 대행 처리 항목으로 분류됩니다. 따라서, 당사는 전체 계약금액 기준의 세금계산서 발행이 불가하며, 국내 과세 대상 경비 중 <span class="text-red-600 font-bold">알선수수료</span> 등 자체수익에 대해서만 세금계산서를 발행함을 사전 안내드립니다.
                     </p>
                 </div>
-                <div class="mt-4 text-center border-t border-slate-200 pt-3 pb-2">
+                <div class="mt-3 text-center border-t border-slate-200 pt-2 pb-0 calc-powered">
                     <p class="text-[11px] text-slate-500">[System Powered by TOURMAKER] 본 산출내역서는 <a href="http://tourmaker.kr" target="_blank" class="font-bold text-slate-700 hover:underline">투어메이커</a>의 기획과 트래블 테크 기술 제휴로 제작되었습니다.</p>
                 </div>
             </div>
@@ -362,7 +588,57 @@
             renderHeaderAndCosts();
         }
 
-        // --- 2. 기본 상태(State) 데이터 탑재 (황지정보산업고 기준) ---
+        
+        function commitActiveEditable() {
+            const active = document.activeElement;
+            if (active && typeof active.blur === 'function') active.blur();
+        }
+
+        window.addEventListener('beforeprint', () => {
+            commitActiveEditable();
+            document.body.classList.add('print-mode');
+        });
+
+        window.addEventListener('afterprint', () => {
+            document.body.classList.remove('print-mode');
+        });
+
+        function syncItineraryPreviewHeight() {
+            const page = document.getElementById('page-1');
+            const table = page?.querySelector('.itinerary-table');
+            if (!page || !table) return;
+
+            requestAnimationFrame(() => {
+                page.style.minHeight = '297mm';
+                page.classList.remove('preview-expanded');
+
+                const desiredGap = 92; // 약 24mm 정도의 웹 편집용 하단 안전 여백
+                const pageRect = page.getBoundingClientRect();
+                const tableRect = table.getBoundingClientRect();
+                const currentGap = pageRect.bottom - tableRect.bottom;
+
+                if (currentGap < desiredGap) {
+                    const extra = desiredGap - currentGap;
+                    const expandedHeight = page.scrollHeight + extra;
+                    page.style.minHeight = `${Math.ceil(expandedHeight)}px`;
+                    page.classList.add('preview-expanded');
+                }
+            });
+        }
+
+        document.addEventListener('input', (event) => {
+            if (event.target && event.target.closest && event.target.closest('#page-1')) {
+                syncItineraryPreviewHeight();
+            }
+        });
+
+        window.addEventListener('resize', syncItineraryPreviewHeight);
+        window.addEventListener('load', () => setTimeout(syncItineraryPreviewHeight, 120));
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => setTimeout(syncItineraryPreviewHeight, 80));
+        }
+
+// --- 2. 기본 상태(State) 데이터 탑재 (황지정보산업고 기준) ---
         const poiDB = {
             "에코랜드": "곶자왈 원시림을 달리는 낭만적인 클래식 기차여행",
             "신화월드테마파크": "캐릭터와 함께하는 짜릿한 놀이기구 테마파크 체험",
@@ -482,6 +758,7 @@
                 </tbody>`;
             });
             container.innerHTML = html;
+            syncItineraryPreviewHeight();
         }
 
         // [좌측] 비용 입력 폼 렌더링
