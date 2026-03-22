@@ -35,11 +35,11 @@
         /* [우측] 미리보기/편집 패널 */
         .preview-panel { flex: 6; background-color: #e2e8f0; overflow-y: auto; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; }
         
-        /* A4 용지 기본 세팅 (인쇄 최적화) */
+        /* A4 용지 기본 세팅 (인쇄 최적화 - 강제 늘림 제거) */
         .a4-sheet { 
             width: 210mm; min-height: 297mm; background: white; padding: 15mm 12mm; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 30px; border-radius: 4px;
-            display: flex; flex-direction: column; position: relative;
+            display: block; position: relative;
         }
 
         /* 테이블 기본 */
@@ -47,11 +47,11 @@
         th, td { border: 1px solid #94a3b8; padding: 6px; word-break: break-word; }
         th { background-color: #f8fafc; font-weight: 700; color: #1e293b; text-align: center; }
         
-        /* 일정표 렌더링 - 억지 늘림 방지 & 자연스러운 높이 유지 */
-        .itinerary-table { border-top: 3px solid #0f172a; border-bottom: 3px solid #0f172a; height: auto; }
+        /* 테이블 테두리 디자인 */
+        .itinerary-table { border-top: 3px solid #0f172a; border-bottom: 3px solid #0f172a; margin-top: 10px; }
         .itinerary-table tbody td { vertical-align: middle !important; }
         
-        .cost-table { border-top: 3px solid #0f172a; border-bottom: 3px solid #0f172a; }
+        .cost-table { border-top: 3px solid #0f172a; border-bottom: 3px solid #0f172a; margin-top: 10px; }
         .cost-table tbody td { vertical-align: middle; }
         .subtotal-row td { background-color: #f1f5f9; font-weight: bold; border-bottom: 2px solid #64748b; }
 
@@ -111,14 +111,15 @@
             .a4-sheet { 
                 box-shadow: none !important; margin: 0 !important; padding: 10mm 12mm !important; 
                 width: 100% !important; min-height: 297mm !important; height: 297mm !important;
-                page-break-after: always; overflow: hidden !important;
+                page-break-after: always; overflow: hidden !important; display: block !important;
             }
             
             .edit-input { border: none !important; background: transparent !important; padding: 0 !important; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             
-            .itinerary-table, .cost-table { border-top: 2px solid #000 !important; border-bottom: 2px solid #000 !important; }
-            th, td { border: 1px solid #000 !important; padding: 8px 6px !important; }
+            /* 테이블 테두리 정밀 제어 및 자연스러운 여백 */
+            .itinerary-table, .cost-table { border-top: 2px solid #000 !important; border-bottom: 2px solid #000 !important; margin-top: 10px !important; }
+            th, td { border: 1px solid #000 !important; padding: 6px !important; }
             .subtotal-row td { background-color: #f1f5f9 !important; }
             th { background-color: #f8fafc !important; }
         }
@@ -212,7 +213,7 @@
                         <div class="text-[13px] font-bold text-indigo-800">✈️ (1) 항공료 영역</div>
                     </div>
                     <div id="cost-flight-list"></div>
-                    <button onclick="addCost('flight')" class="w-full text-[11px] bg-indigo-50 border border-dashed border-indigo-400 text-indigo-700 py-2 rounded font-bold hover:bg-indigo-100 transition shadow-sm">+ 항공 항목 추가</button>
+                    <button onclick="addCost('flight')" class="w-full text-[11px] bg-indigo-50 border border-dashed border-indigo-300 text-indigo-600 py-2 rounded font-bold hover:bg-indigo-100 transition shadow-sm">+ 항공 항목 추가</button>
                 </div>
 
                 <div class="mb-5">
@@ -220,7 +221,7 @@
                         <div class="text-[13px] font-bold text-green-800">🌴 (2) 제주(현지) 발생비용 영역</div>
                     </div>
                     <div id="cost-local-list"></div>
-                    <button onclick="addCost('local')" class="w-full text-[11px] bg-green-50 border border-dashed border-green-400 text-green-700 py-2 rounded font-bold hover:bg-green-100 transition shadow-sm">+ 현지 발생 항목 추가</button>
+                    <button onclick="addCost('local')" class="w-full text-[11px] bg-green-50 border border-dashed border-green-300 text-green-600 py-2 rounded font-bold hover:bg-green-100 transition shadow-sm">+ 현지 발생 항목 추가</button>
                 </div>
 
                 <div>
@@ -228,7 +229,7 @@
                         <div class="text-[13px] font-bold text-orange-800">🏢 (3) 국내 발생비용 (수수료 등)</div>
                     </div>
                     <div id="cost-domestic-list"></div>
-                    <button onclick="addCost('domestic')" class="w-full text-[11px] bg-orange-50 border border-dashed border-orange-400 text-orange-700 py-2 rounded font-bold hover:bg-orange-100 transition shadow-sm">+ 국내 비용 항목 추가</button>
+                    <button onclick="addCost('domestic')" class="w-full text-[11px] bg-orange-50 border border-dashed border-orange-300 text-orange-600 py-2 rounded font-bold hover:bg-orange-100 transition shadow-sm">+ 국내 비용 항목 추가</button>
                 </div>
             </div>
             
@@ -272,10 +273,10 @@
                     </div>
                 </div>
 
-                <!-- 일정표 테이블 (자연스러운 렌더링 유지) -->
+                <!-- 일정표 테이블 -->
                 <table class="itinerary-table relative z-0">
                     <colgroup>
-                        <col width="16%"><col width="64%"><col width="20%">
+                        <col width="14%"><col width="68%"><col width="18%">
                     </colgroup>
                     <thead>
                         <tr class="bg-slate-100 border-b-2 border-slate-800">
@@ -292,26 +293,25 @@
 
             <!-- [2페이지] 산출내역서 -->
             <div class="a4-sheet" id="page-2">
-                <div class="text-center mb-6 pt-4">
-                    <h3 class="text-[26px] font-black tracking-[0.2em] text-slate-900 border-b-[3px] border-slate-900 inline-block pb-2 px-10">가격 산출 내역서</h3>
-                    <p class="text-[11px] font-bold text-slate-500 tracking-[0.3em] mt-2">CALCULATION DETAILS</p>
+                <div class="text-center mb-4">
+                    <h3 class="text-[24px] font-black tracking-[0.2em] text-slate-900 border-b-[2px] border-slate-900 inline-block pb-1 px-8">가격 산출 내역서</h3>
+                    <p class="text-[10px] font-bold text-slate-500 tracking-[0.3em] mt-1">CALCULATION DETAILS</p>
                 </div>
 
-                <!-- 비용 산출 테이블 (비율 최적화 반영) -->
+                <!-- 비용 산출 테이블 (비율 최적화 반영: 구분/항목/내용/수량/단가/총금액/비고) -->
                 <table class="cost-table">
                     <colgroup>
-                        <!-- 대분류, 항목, 내용(축소), 수량, 단가, 총금액, 비고(확장) -->
-                        <col width="10%"><col width="14%"><col width="26%"><col width="9%"><col width="13%"><col width="14%"><col width="14%">
+                        <col width="9%"><col width="13%"><col width="26%"><col width="11%"><col width="13%"><col width="14%"><col width="14%">
                     </colgroup>
                     <thead>
                         <tr class="bg-slate-100 border-b-2 border-slate-800 text-[12px]">
-                            <th class="py-2.5 text-slate-800 leading-tight font-extrabold">구분</th>
-                            <th class="py-2.5 text-slate-800 leading-tight font-extrabold">항목</th>
-                            <th class="py-2.5 text-slate-800 leading-tight font-extrabold">내용</th>
-                            <th class="py-2.5 text-slate-800 leading-tight font-extrabold">인원/객실수<br>차량대수</th>
-                            <th class="py-2.5 text-slate-800 leading-tight font-extrabold">원화 단가<br><span class="font-normal text-[10px]">KRW</span></th>
-                            <th class="py-2.5 text-slate-800 leading-tight font-extrabold">총금액<br><span class="font-normal text-[10px]">KRW</span></th>
-                            <th class="py-2.5 text-slate-800 leading-tight font-extrabold">비고</th>
+                            <th class="py-2 text-slate-800 leading-tight font-extrabold">구분</th>
+                            <th class="py-2 text-slate-800 leading-tight font-extrabold">항목</th>
+                            <th class="py-2 text-slate-800 leading-tight font-extrabold">내용</th>
+                            <th class="py-2 text-slate-800 leading-tight font-extrabold whitespace-nowrap">인원/객실수<br>차량대수</th>
+                            <th class="py-2 text-slate-800 leading-tight font-extrabold">원화 단가<br><span class="font-normal text-[10px]">KRW</span></th>
+                            <th class="py-2 text-slate-800 leading-tight font-extrabold">총금액<br><span class="font-normal text-[10px]">KRW</span></th>
+                            <th class="py-2 text-slate-800 leading-tight font-extrabold">비고</th>
                         </tr>
                     </thead>
                     <tbody id="tbody-costs">
@@ -319,13 +319,14 @@
                     </tbody>
                 </table>
                 
-                <div class="mt-8 flex-1">
+                <!-- 하단 안내문 -->
+                <div class="mt-6 pt-2">
                     <p class="text-[12px] font-bold text-slate-800 mb-1">1. 세금계산서 발행 관련 안내문</p>
                     <p class="text-[11.5px] text-slate-600 leading-relaxed text-justify">
                         * 본 위탁용역의 특성상 항공권, 숙박비, 현지교통비 등은 당사가 직접 제공하는 서비스가 아닌, 제 3자와의 거래를 통한 수탁 대행 처리 항목으로 분류됩니다. 따라서, 당사는 전체 계약금액 기준의 세금계산서 발행이 불가하며, 국내 과세 대상 경비 중 <span class="text-red-600 font-bold">알선수수료</span> 등 자체수익에 대해서만 세금계산서를 발행함을 사전 안내드립니다.
                     </p>
                 </div>
-                <div class="mt-auto text-center border-t border-slate-200 pt-4 pb-2">
+                <div class="mt-4 text-center border-t border-slate-200 pt-3 pb-2">
                     <p class="text-[11px] text-slate-500">[System Powered by TOURMAKER] 본 산출내역서는 <a href="http://tourmaker.kr" target="_blank" class="font-bold text-slate-700 hover:underline">투어메이커</a>의 기획과 트래블 테크 기술 제휴로 제작되었습니다.</p>
                 </div>
             </div>
@@ -345,7 +346,7 @@
         const fmtTotal = n => Number(n || 0).toLocaleString();
         const esc = str => String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-        // 입력 폼 단가 입력 핸들러 (NaN 방지 및 실시간 업데이트)
+        // 입력 폼 단가 입력 핸들러
         function handlePriceInput(el, type, i) {
             let val = el.value.replace(/[^0-9]/g, '');
             el.value = val ? Number(val).toLocaleString() : '';
@@ -355,7 +356,7 @@
 
         // 입력 폼 수량 입력 핸들러
         function handleQtyInput(el, type, i) {
-            let val = el.value.replace(/[^0-9.]/g, ''); // 소수점 허용 (필요시)
+            let val = el.value.replace(/[^0-9.]/g, ''); 
             el.value = val;
             costs[type][i]['qty'] = val ? Number(val) : 0;
             renderHeaderAndCosts();
@@ -409,7 +410,7 @@
                 { name: "관광지입장료", desc: "스누피가든", qty: 1, krw: 16000, note: "교사_학생 10명당 1명 무료" },
                 { name: "관광지입장료", desc: "에코랜드", qty: 41, krw: 14000, note: "학생 10명당 1명 무료" },
                 { name: "관광지입장료", desc: "카멜리아힐", qty: 41, krw: 9000, note: "학생 10명당 1명 무료" },
-                { name: "관광지입장료", content: "", desc: "천지연폭포", qty: 40, krw: 600, note: "학생" },
+                { name: "관광지입장료", desc: "천지연폭포", qty: 40, krw: 600, note: "학생" },
                 { name: "관광지입장료", desc: "천지연폭포", qty: 1, krw: 1600, note: "학생 10명당 1명 무료" },
                 { name: "관광지입장료", desc: "노형수퍼마켙", qty: 41, krw: 13000, note: "학생 10명당 1명 무료" },
                 { name: "야간안전요원", desc: "3일_男", qty: 1, krw: 840000, note: "22:00-08:00_8시간근무" }
@@ -421,7 +422,7 @@
             ]
         };
 
-        // --- 3. 우측 일정표 렌더링 (자연스러운 높이 배분) ---
+        // --- 3. 우측 일정표 렌더링 (구조 붕괴 방지 및 자연스러운 여백) ---
         function renderItinerary() {
             const container = document.getElementById('itinerary-container');
             let html = '';
@@ -433,26 +434,24 @@
                 }
             });
 
-            // 폰트 사이즈 및 여백 최적화
+            // 글자 크기와 여백 최적화
             const len = days.length;
             const baseSize = Math.max(12, 16 - (len * 0.7)); 
             const txtSzStyle = `font-size: ${baseSize}px;`;
             
-            // 일정 개수에 맞춰 패딩을 자연스럽게 줌으로써 강제 늘어짐 방지
-            let pyClass = "py-3.5";
+            let pyClass = "py-3";
             if(len <= 2) pyClass = "py-6";
             else if(len === 3) pyClass = "py-5";
-            else if(len >= 5) pyClass = "py-2.5";
+            else if(len >= 5) pyClass = "py-2";
 
             days.forEach((day, i) => {
                 const hotelRow = day.hotel ? `
                     <tr class="border-t border-slate-300">
-                        <td colspan="2" class="px-5 py-2.5 bg-blue-50/20">
+                        <td colspan="2" class="px-5 py-2 bg-blue-50/20">
                             <div class="flex items-center" style="${txtSzStyle}">
                                 <span class="font-extrabold text-blue-900 tracking-widest mr-2">숙소</span>
                                 <span class="font-bold text-blue-900 mx-2">:</span>
                                 <div class="flex-1 text-left">
-                                    <!-- 숙소명 인라인 수정 -->
                                     <div contenteditable="true" class="edit-input font-bold text-blue-900 inline-block" onblur="updateDay(${i}, 'hotel', this.innerText)">${esc(day.hotel)}</div>
                                 </div>
                             </div>
@@ -485,7 +484,7 @@
             container.innerHTML = html;
         }
 
-        // [좌측] 비용 입력 폼 렌더링 (비율 최적화된 2줄 레이아웃)
+        // [좌측] 비용 입력 폼 렌더링
         function renderCostInputs() {
             ['flight', 'local', 'domestic'].forEach(type => {
                 let html = '';
@@ -509,7 +508,7 @@
                         </div>
                         <div class="grid grid-cols-1 gap-1.5 pr-2">
                             <div>
-                                <input type="text" class="input-field !p-1.5 text-[11px] text-slate-500 w-full" value="${esc(c.note)}" onchange="updateCost('${type}', ${i}, 'note', this.value)" placeholder="비고란 (넓게 입력하세요)">
+                                <input type="text" class="input-field !p-1.5 text-[11px] text-slate-500 w-full" value="${esc(c.note)}" onchange="updateCost('${type}', ${i}, 'note', this.value)" placeholder="비고란 (충분히 길게 입력하세요)">
                             </div>
                         </div>
                     </div>`;
@@ -518,7 +517,7 @@
             });
         }
 
-        // 공통 헤더 및 비용 7열 렌더링 (병합 완벽 적용)
+        // 공통 헤더 및 비용 7열 렌더링
         function renderHeaderAndCosts() {
             const title = document.getElementById('inp-title').value;
             const date = document.getElementById('inp-date').value;
@@ -561,7 +560,7 @@
                     
                     subHtml += `<tr class="bg-white">`;
                     
-                    // 1. 대분류 (전체 병합)
+                    // 1. 대분류
                     if (i === 0) {
                         subHtml += `<td rowspan="${validItems.length}" class="text-center font-extrabold bg-slate-50 text-slate-800 tracking-tight text-[12px] align-middle">${groupCatName}</td>`;
                     }
@@ -698,7 +697,7 @@
         function addCost(type) { costs[type].push({ name: "", desc: "", qty: "", krw: "", note: "" }); renderCostInputs(); renderHeaderAndCosts(); }
         function removeCost(type, i) { costs[type].splice(i, 1); renderCostInputs(); renderHeaderAndCosts(); }
 
-        // --- 7. 설명 채우기 (POI) ---
+        // --- 6. 설명 채우기 (POI) ---
         function applyPOI(text, globalUsed) {
             let updated = false;
             let newText = text;
@@ -741,7 +740,7 @@
             else alert('추가할 설명이 없습니다.');
         }
 
-        // --- 8. 템플릿 관리 ---
+        // --- 7. 템플릿 관리 ---
         function getFormData() {
             return {
                 agency: document.getElementById('inp-agency').value,
@@ -789,7 +788,7 @@
             localStorage.setItem('tourmaker_jeju_presets', JSON.stringify(presets));
             updatePresetDropdown(); 
             document.getElementById('preset-select').value = name;
-            alert(`[${name}] 견적이 브라우저 캐시에 저장되었습니다.`);
+            alert(`[${name}] 견적이 로컬에 저장되었습니다.`);
         }
 
         function loadPreset() {
@@ -852,7 +851,7 @@
             renderHeaderAndCosts();
         }
 
-        // --- 9. 초기화 ---
+        // --- 8. 초기화 ---
         window.onload = () => {
             handleAgencyChange();
             updatePresetDropdown();
