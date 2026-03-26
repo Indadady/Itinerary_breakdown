@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TOURMAKER 스마트 일정·견적 통합 솔루션</title>
     
+    <!-- 카카오톡 등 공유 썸네일 (og:image) 및 파비콘 추가 -->
+    <meta property="og:title" content="스마트 일정·견적 통합 솔루션 | TOURMAKER">
+    <meta property="og:description" content="클릭하여 상세 일정 및 산출 내역을 확인하세요.">
+    <meta property="og:image" content="https://blogger.googleusercontent.com/img/a/AVvXsEhPxG_ONo2BdFAGDNnn-pHIGJTrAq374YbqgwTTlyIZTP22kOWTDD_AyjKDNFPhsHg5t1Iq6zV0dL_NZIj4o97Kd0eWJYCv-NHhtIqme-Mp3htGhAdkqVv5NRU3Jc9TbdbvvVKrPslObA1oNABpgl12QtGwirC2QM5lcPCVoWm8pIbeKuZBbeDHAvpbKEQ">
+    <link rel="icon" href="https://blogger.googleusercontent.com/img/a/AVvXsEhPxG_ONo2BdFAGDNnn-pHIGJTrAq374YbqgwTTlyIZTP22kOWTDD_AyjKDNFPhsHg5t1Iq6zV0dL_NZIj4o97Kd0eWJYCv-NHhtIqme-Mp3htGhAdkqVv5NRU3Jc9TbdbvvVKrPslObA1oNABpgl12QtGwirC2QM5lcPCVoWm8pIbeKuZBbeDHAvpbKEQ">
+
     <!-- 구글 애널리틱스 (GA4) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-JLH9GD9SVR"></script>
     <script>
@@ -234,10 +240,13 @@
                 right: auto !important;
                 transform: none !important;
                 transform-origin: top center !important;
+                /* * [피드백 반영] 4박5일 이상 시 2페이지로 자연스럽게 넘어가도록 
+                 * page-break-inside를 auto로 풀어주어 인쇄 시 자동 페이징 지원
+                 */
                 page-break-after: always !important;
                 break-after: page !important;
-                page-break-inside: avoid !important;
-                break-inside: avoid-page !important;
+                page-break-inside: auto !important;
+                break-inside: auto !important;
             }
             .a4-sheet:last-child {
                 page-break-after: auto !important;
@@ -257,6 +266,7 @@
             thead { display: table-header-group !important; }
             tfoot { display: table-footer-group !important; }
 
+            /* 행(tr) 내부에서는 글자가 반으로 잘리지 않도록 보호 */
             table, thead, tbody, tfoot, tr, td, th, p, h1, h2, h3, h4, h5, h6, .subtotal-row {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
@@ -355,7 +365,7 @@
     <!-- 상단 네비게이션 (타이틀 변경 적용) -->
     <div class="top-nav h-[56px] bg-slate-900 text-white px-4 flex justify-between items-center shadow-md z-20 relative">
         <div class="flex items-center gap-3">
-            <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHfgIX70O5k6Anuo0UgALIdaG9jSga9auHu3uyz0uEirylGPAJnjN_qQbvEGMUvPqUQf_g9FMNUHRxlDcUBf4vZ3Mpy4TnA9WxbmzWYK11gt2zuy_Irl4wctNFjcjLyPo0GPXV792o_J7L9guRMuDfeC1gy7USwywjYbECZgzcsHybuGRRAXAnO1eNmP8/s320/logo.png" alt="Tourmaker" class="h-6 filter brightness-0 invert">
+            <img src="https://blogger.googleusercontent.com/img/a/AVvXsEitI-Z-hD82keOJ1AqHw-VTZjpw2U-O5UjtV9h3zblyG0wjsVfBWe9X9o0Q_Spctrt7krkd9qXO0xKTmGJLw4gyMZrRqpshKMFttnyx6OcC8-IGz3XLUZpGQOnRqVdol8jz5HuoDLqsEifnVRhcjUJHm13Sz8JrX9aPswMNUwZPvGtJEnQjhc2PiXlo-B8" alt="Tourmaker" class="h-8 object-contain">
             <h1 class="text-[15px] font-bold tracking-wide text-emerald-400 border-l border-slate-600 pl-3 flex items-center">
                 스마트 일정·견적 통합 솔루션
                 <span class="text-[10px] font-medium text-slate-300 ml-2 border border-slate-500 px-1.5 py-0.5 rounded opacity-80">B2B / B2C</span>
@@ -402,7 +412,7 @@
                 </div>
             </div>
             
-            <!-- 1. 기본 정보 (커스텀 입력 기능 추가) -->
+            <!-- 1. 기본 정보 -->
             <div class="form-section">
                 <div class="section-title">1. 문서 기본 정보</div>
                 <div class="grid grid-cols-2 gap-3">
@@ -416,7 +426,7 @@
                         </select>
                     </div>
                     
-                    <!-- 타 여행사 B2B 직접 입력창 (평소엔 숨김) -->
+                    <!-- 타 여행사 B2B 직접 입력창 -->
                     <div id="custom-agency-fields" class="col-span-2 grid grid-cols-2 gap-2 hidden bg-blue-50 p-3 rounded border border-blue-200 mt-1">
                         <div class="col-span-2 text-xs font-black text-blue-800 mb-1">💼 타 여행사 정보 (실시간 반영)</div>
                         <div class="col-span-2">
@@ -442,7 +452,12 @@
                         <label class="input-label">인원 기재</label>
                         <input type="text" id="inp-pax" class="input-field" oninput="renderHeaderAndCosts()">
                     </div>
+                    <!-- [피드백 반영] 1인 단가 추가 (미입력 시 노출 안 됨) -->
                     <div>
+                        <label class="input-label">1인 단가 (미입력시 숨김)</label>
+                        <input type="text" id="inp-per-pax-price" class="input-field text-emerald-700 font-bold bg-emerald-50/30" placeholder="숫자만 입력 (예: 650000)" oninput="handlePerPaxPrice(this)">
+                    </div>
+                    <div class="col-span-2">
                         <label class="input-label">작성 일자 / 비고</label>
                         <input type="text" id="inp-issue" class="input-field text-blue-700 font-bold" oninput="renderHeaderAndCosts()">
                     </div>
@@ -496,6 +511,11 @@
                             <span class="bg-slate-100 px-2 py-0.5 rounded border border-slate-300 shadow-sm" id="out-date"></span>
                             <span class="mx-2 text-slate-300">|</span>
                             <span id="out-pax"></span>
+                            
+                            <!-- [피드백 반영] 1인 단가 출력부 (안 보일 때는 hidden 클래스 적용됨) -->
+                            <span class="mx-2 text-slate-300 sep-per-pax hidden">|</span>
+                            <span id="out-per-pax" class="text-emerald-700 font-extrabold hidden"></span>
+                            
                             <span class="mx-2 text-slate-300">|</span>
                             <span id="out-issue" class="text-blue-700"></span>
                         </div>
@@ -534,7 +554,7 @@
                         <!-- JS 렌더링 -->
                     </tbody>
                 </table>
-                <div class="itinerary-overflow-note no-print">일정 설명이 길어지면 웹 미리보기에서 하단 여백을 자동으로 늘려 잘려 보이지 않게 처리합니다. 인쇄 시에는 실제 A4 기준으로 다시 정렬됩니다.</div>
+                <div class="itinerary-overflow-note no-print">인쇄 시 4박 5일 이상 등 내용이 길면 자동으로 다음 장으로 넘어가서 깔끔하게 인쇄됩니다.</div>
             </div>
 
             <!-- [2페이지] 산출내역서 -->
@@ -602,6 +622,13 @@
         const fmt = n => (n === 0 || n === '' || isNaN(n)) ? '' : Number(n).toLocaleString();
         const fmtTotal = n => Number(n || 0).toLocaleString();
         const esc = str => String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+        // 1인 단가 입력 콤마 포맷팅 처리
+        function handlePerPaxPrice(el) {
+            let val = el.value.replace(/[^0-9]/g, '');
+            el.value = val ? Number(val).toLocaleString() : '';
+            renderHeaderAndCosts();
+        }
 
         // 입력 폼 단가 입력 핸들러
         function handlePriceInput(el, type, i) {
@@ -835,11 +862,25 @@
             const date = document.getElementById('inp-date').value;
             const pax = document.getElementById('inp-pax').value;
             const issue = document.getElementById('inp-issue').value;
+            const perPaxPrice = document.getElementById('inp-per-pax-price').value;
 
             document.getElementById('out-title').innerText = title;
             document.getElementById('out-date').innerText = date;
             document.getElementById('out-pax').innerText = pax;
             document.getElementById('out-issue').innerText = `작성일: ${issue}`;
+
+            // [피드백 반영] 1인 단가가 있으면 노출, 없으면 완벽하게 숨김
+            const outPerPax = document.getElementById('out-per-pax');
+            const sepPerPax = document.querySelector('.sep-per-pax');
+            if(perPaxPrice) {
+                outPerPax.innerText = `1인 단가: ${perPaxPrice}원`;
+                outPerPax.classList.remove('hidden');
+                sepPerPax.classList.remove('hidden');
+            } else {
+                outPerPax.innerText = '';
+                outPerPax.classList.add('hidden');
+                sepPerPax.classList.add('hidden');
+            }
 
             let costHtml = '';
             let grandTotal = 0;
@@ -979,6 +1020,7 @@
             document.getElementById('footer-powered-text').innerHTML = footerText;
         }
 
+        // [피드백 반영] 워드 다운로드 시에도 1인 단가가 포함되도록 업데이트
         function exportToWord() {
             const title = document.getElementById('inp-title').value.split(' ')[0] || "고객";
             const agency = document.getElementById('inp-agency').value;
@@ -987,6 +1029,10 @@
             if(agency === 'jeju') exportAgencyName = "(주)제주테마투어";
             else if(agency === 'woorideul') exportAgencyName = "우리들여행사";
             else if (agency === 'custom') exportAgencyName = document.getElementById('inp-custom-name').value || "여행사";
+
+            const perPaxPrice = document.getElementById('inp-per-pax-price').value;
+            const perPaxHtml = perPaxPrice ? `&nbsp;|&nbsp; <span style="color:#047857;">1인 단가: ₩${perPaxPrice}</span>` : '';
+            const docInfoHtml = `${document.getElementById('inp-date').value} &nbsp;|&nbsp; ${document.getElementById('inp-pax').value} ${perPaxHtml}`;
 
             const sourceHTML = `
                 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
@@ -1002,7 +1048,8 @@
                 </head>
                 <body>
                     <div style="text-align:right; margin-bottom: 10px; font-weight: bold; font-size: 14pt;">${exportAgencyName}</div>
-                    <div style="font-size: 20pt; font-weight: bold; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom:10px;">상세 일정 및 산출 내역서</div>
+                    <div style="font-size: 20pt; font-weight: bold; text-align: center; margin-bottom: 5px; border-bottom: 2px solid #000; padding-bottom:10px;">상세 일정 및 산출 내역서</div>
+                    <div style="text-align: center; margin-bottom: 20px; font-size: 11pt; color: #555;">${docInfoHtml}</div>
                     
                     <h3>1. 일정표</h3>
                     <table>
@@ -1102,6 +1149,7 @@
                 title: document.getElementById('inp-title').value,
                 date: document.getElementById('inp-date').value,
                 pax: document.getElementById('inp-pax').value,
+                perPaxPrice: document.getElementById('inp-per-pax-price').value, // 1인 단가 저장
                 issue: document.getElementById('inp-issue').value,
                 days: JSON.parse(JSON.stringify(days)),
                 costs: JSON.parse(JSON.stringify(costs))
@@ -1116,6 +1164,7 @@
             document.getElementById('inp-title').value = data.title || '';
             document.getElementById('inp-date').value = data.date || '';
             document.getElementById('inp-pax').value = data.pax || '';
+            document.getElementById('inp-per-pax-price').value = data.perPaxPrice || ''; // 1인 단가 불러오기
             document.getElementById('inp-issue').value = data.issue || '';
             if(data.days) days = JSON.parse(JSON.stringify(data.days));
             if(data.costs) costs = JSON.parse(JSON.stringify(data.costs));
@@ -1203,6 +1252,7 @@
             document.getElementById('inp-title').value = '';
             document.getElementById('inp-date').value = '';
             document.getElementById('inp-pax').value = '';
+            document.getElementById('inp-per-pax-price').value = ''; // 1인 단가 초기화
             document.getElementById('inp-issue').value = '';
             
             days = [{ date: "", hotel: "", desc: "", meal: "" }];
@@ -1220,6 +1270,7 @@
                 document.getElementById('inp-title').value = '황지정보산업고등학교 제주도 테마여행';
                 document.getElementById('inp-date').value = '2026.09.08 ~ 09.11 (3박 4일)';
                 document.getElementById('inp-pax').value = '45명기준(학생 40+ 교사5)';
+                document.getElementById('inp-per-pax-price').value = '650,000'; // 샘플 1인 단가 추가
                 document.getElementById('inp-issue').value = '2026.03.20 / 국내행사 (환율 미적용)';
             }
             
