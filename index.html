@@ -411,6 +411,7 @@
                         <select id="inp-agency" class="input-field font-bold text-blue-900" onchange="handleAgencyChange()">
                             <option value="tourmaker" selected>투어메이커 (기본 로고 출력)</option>
                             <option value="jeju">(주)제주테마투어 (텍스트 출력 / 워드 허용)</option>
+                            <option value="woorideul" class="text-emerald-700">우리들여행사 (전용 로고 출력)</option>
                             <option value="custom" class="text-blue-600">✨ 직접 입력 (타 여행사 데모용)</option>
                         </select>
                     </div>
@@ -936,7 +937,7 @@
                 wordBtn.classList.remove('hidden'); // 커스텀도 워드 지원
             } else {
                 customFields.classList.add('hidden');
-                if (agency === 'jeju') wordBtn.classList.remove('hidden');
+                if (agency === 'jeju' || agency === 'woorideul') wordBtn.classList.remove('hidden');
                 else wordBtn.classList.add('hidden');
             }
 
@@ -952,6 +953,12 @@
             else if (agency === 'jeju') {
                 currentAgencyName = '(주)제주테마투어';
                 agencyHtml = `<div class="text-[18px] font-black text-slate-800 tracking-widest mt-1">${currentAgencyName}</div><div class="text-[11px] font-bold text-slate-500 mt-1">담당: 문정희 (010-2645-7524)</div>`;
+                footerText = `[System Powered by TOURMAKER] 본 산출내역서는 <strong>${currentAgencyName}</strong>의 기획과 <a href="http://tourmaker.kr" target="_blank" class="font-bold text-slate-700 hover:underline">투어메이커</a>의 트래블 테크 기술 제휴로 제작되었습니다.`;
+            }
+            else if (agency === 'woorideul') {
+                currentAgencyName = '우리들여행사';
+                const woorideulLogo = 'https://blogger.googleusercontent.com/img/a/AVvXsEhkIGXEfaJ-_hnuZKhDchK_posExV6zRFC9our1Le1ytGsvui1fRuPODev1S2byqlo75MWRdaWT2CUJjEIrNrSVGGI7PBcB424dimkxc0jZrn_gG7v3S_GCGEsC-DjsxaDS1qIu0HF0ObCZF9LygAodexbi0saCcJQJqe9uJ6vQUhl47NkZuRFROBDNP2s';
+                agencyHtml = `<img src="${woorideulLogo}" alt="${currentAgencyName}" class="h-[36px] object-contain float-right mb-1"><div class="clear-both"></div>`;
                 footerText = `[System Powered by TOURMAKER] 본 산출내역서는 <strong>${currentAgencyName}</strong>의 기획과 <a href="http://tourmaker.kr" target="_blank" class="font-bold text-slate-700 hover:underline">투어메이커</a>의 트래블 테크 기술 제휴로 제작되었습니다.`;
             }
             else if (agency === 'custom') {
@@ -978,6 +985,7 @@
             
             let exportAgencyName = "투어메이커";
             if(agency === 'jeju') exportAgencyName = "(주)제주테마투어";
+            else if(agency === 'woorideul') exportAgencyName = "우리들여행사";
             else if (agency === 'custom') exportAgencyName = document.getElementById('inp-custom-name').value || "여행사";
 
             const sourceHTML = `
