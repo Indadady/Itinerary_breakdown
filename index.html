@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TOURMAKER 스마트 산출내역서 (제주/국내전용)</title>
+    <title>TOURMAKER 스마트 일정·견적 통합 솔루션</title>
     
     <!-- 구글 애널리틱스 (GA4) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-JLH9GD9SVR"></script>
@@ -352,11 +352,14 @@
 </head>
 <body>
 
-    <!-- 상단 네비게이션 -->
+    <!-- 상단 네비게이션 (타이틀 변경 적용) -->
     <div class="top-nav h-[56px] bg-slate-900 text-white px-4 flex justify-between items-center shadow-md z-20 relative">
         <div class="flex items-center gap-3">
             <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHfgIX70O5k6Anuo0UgALIdaG9jSga9auHu3uyz0uEirylGPAJnjN_qQbvEGMUvPqUQf_g9FMNUHRxlDcUBf4vZ3Mpy4TnA9WxbmzWYK11gt2zuy_Irl4wctNFjcjLyPo0GPXV792o_J7L9guRMuDfeC1gy7USwywjYbECZgzcsHybuGRRAXAnO1eNmP8/s320/logo.png" alt="Tourmaker" class="h-6 filter brightness-0 invert">
-            <h1 class="text-[15px] font-bold tracking-wide text-emerald-400 border-l border-slate-600 pl-3">국내(제주) 산출내역 및 일정표 에디터</h1>
+            <h1 class="text-[15px] font-bold tracking-wide text-emerald-400 border-l border-slate-600 pl-3 flex items-center">
+                스마트 일정·견적 통합 솔루션
+                <span class="text-[10px] font-medium text-slate-300 ml-2 border border-slate-500 px-1.5 py-0.5 rounded opacity-80">B2B / B2C</span>
+            </h1>
         </div>
         <div class="flex items-center gap-3">
             <span class="text-sm font-bold text-slate-300 mr-2">총 견적: <span id="top-total" class="text-amber-400 text-lg font-black tracking-tight">0</span>원</span>
@@ -399,32 +402,48 @@
                 </div>
             </div>
             
-            <!-- 1. 기본 정보 -->
+            <!-- 1. 기본 정보 (커스텀 입력 기능 추가) -->
             <div class="form-section">
                 <div class="section-title">1. 문서 기본 정보</div>
                 <div class="grid grid-cols-2 gap-3">
                     <div class="col-span-2">
                         <label class="input-label">출력 업체 (로고/서명)</label>
                         <select id="inp-agency" class="input-field font-bold text-blue-900" onchange="handleAgencyChange()">
-                            <option value="tourmaker" selected>투어메이커 (로고 출력)</option>
+                            <option value="tourmaker" selected>투어메이커 (기본 로고 출력)</option>
                             <option value="jeju">(주)제주테마투어 (텍스트 출력 / 워드 허용)</option>
+                            <option value="custom" class="text-blue-600">✨ 직접 입력 (타 여행사 데모용)</option>
                         </select>
                     </div>
+                    
+                    <!-- 타 여행사 B2B 직접 입력창 (평소엔 숨김) -->
+                    <div id="custom-agency-fields" class="col-span-2 grid grid-cols-2 gap-2 hidden bg-blue-50 p-3 rounded border border-blue-200 mt-1">
+                        <div class="col-span-2 text-xs font-black text-blue-800 mb-1">💼 타 여행사 정보 (실시간 반영)</div>
+                        <div class="col-span-2">
+                            <input type="text" id="inp-custom-name" class="input-field text-[12px]" placeholder="여행사명 (예: 하나투어 태백점)" oninput="handleAgencyChange()">
+                        </div>
+                        <div class="col-span-2">
+                            <input type="text" id="inp-custom-contact" class="input-field text-[12px]" placeholder="담당자 및 연락처 (예: 담당자 홍길동 010-1234-5678)" oninput="handleAgencyChange()">
+                        </div>
+                        <div class="col-span-2">
+                            <input type="text" id="inp-custom-logo" class="input-field text-[12px]" placeholder="로고 이미지 주소 (선택사항 - 비워두면 텍스트로만 출력)" oninput="handleAgencyChange()">
+                        </div>
+                    </div>
+
                     <div class="col-span-2">
                         <label class="input-label">고객명 / 행사명 (합쳐서 표시됨)</label>
-                        <input type="text" id="inp-title" class="input-field font-bold text-slate-900" value="황지정보산업고등학교 제주도 테마여행" oninput="renderHeaderAndCosts()">
+                        <input type="text" id="inp-title" class="input-field font-bold text-slate-900" oninput="renderHeaderAndCosts()">
                     </div>
                     <div class="col-span-2">
                         <label class="input-label">여행일자 및 기간</label>
-                        <input type="text" id="inp-date" class="input-field" value="2026.09.08 ~ 09.11 (3박 4일)" oninput="renderHeaderAndCosts()">
+                        <input type="text" id="inp-date" class="input-field" oninput="renderHeaderAndCosts()">
                     </div>
                     <div>
                         <label class="input-label">인원 기재</label>
-                        <input type="text" id="inp-pax" class="input-field" value="45명기준(학생 40+ 교사5)" oninput="renderHeaderAndCosts()">
+                        <input type="text" id="inp-pax" class="input-field" oninput="renderHeaderAndCosts()">
                     </div>
                     <div>
                         <label class="input-label">작성 일자 / 비고</label>
-                        <input type="text" id="inp-issue" class="input-field text-blue-700 font-bold" value="2026.03.20 / 국내행사 (환율 미적용)" oninput="renderHeaderAndCosts()">
+                        <input type="text" id="inp-issue" class="input-field text-blue-700 font-bold" oninput="renderHeaderAndCosts()">
                     </div>
                 </div>
             </div>
@@ -435,15 +454,15 @@
                 
                 <div class="mb-5">
                     <div class="flex justify-between items-center mb-2 border-b border-indigo-200 pb-1">
-                        <div class="text-[13px] font-bold text-indigo-800">✈️ (1) 항공료 영역</div>
+                        <div class="text-[13px] font-bold text-indigo-800">✈️ (1) 제1경비 (항공/선박 등)</div>
                     </div>
                     <div id="cost-flight-list"></div>
-                    <button onclick="addCost('flight')" class="w-full text-[11px] bg-indigo-50 border border-dashed border-indigo-300 text-indigo-600 py-2 rounded font-bold hover:bg-indigo-100 transition shadow-sm">+ 항공 항목 추가</button>
+                    <button onclick="addCost('flight')" class="w-full text-[11px] bg-indigo-50 border border-dashed border-indigo-300 text-indigo-600 py-2 rounded font-bold hover:bg-indigo-100 transition shadow-sm">+ 제1경비 항목 추가</button>
                 </div>
 
                 <div class="mb-5">
                     <div class="flex justify-between items-center mb-2 border-b border-green-200 pb-1">
-                        <div class="text-[13px] font-bold text-green-800">🌴 (2) 제주(현지) 발생비용 영역</div>
+                        <div class="text-[13px] font-bold text-green-800">🌴 (2) 현지 발생비용 영역</div>
                     </div>
                     <div id="cost-local-list"></div>
                     <button onclick="addCost('local')" class="w-full text-[11px] bg-green-50 border border-dashed border-green-300 text-green-600 py-2 rounded font-bold hover:bg-green-100 transition shadow-sm">+ 현지 발생 항목 추가</button>
@@ -451,10 +470,10 @@
 
                 <div>
                     <div class="flex justify-between items-center mb-2 border-b border-orange-200 pb-1">
-                        <div class="text-[13px] font-bold text-orange-800">🏢 (3) 국내 발생비용 (수수료 등)</div>
+                        <div class="text-[13px] font-bold text-orange-800">🏢 (3) 수수료 및 기타비용</div>
                     </div>
                     <div id="cost-domestic-list"></div>
-                    <button onclick="addCost('domestic')" class="w-full text-[11px] bg-orange-50 border border-dashed border-orange-300 text-orange-600 py-2 rounded font-bold hover:bg-orange-100 transition shadow-sm">+ 국내 비용 항목 추가</button>
+                    <button onclick="addCost('domestic')" class="w-full text-[11px] bg-orange-50 border border-dashed border-orange-300 text-orange-600 py-2 rounded font-bold hover:bg-orange-100 transition shadow-sm">+ 기타 비용 항목 추가</button>
                 </div>
             </div>
             
@@ -524,7 +543,7 @@
                     <p class="text-[10px] font-bold text-slate-500 tracking-[0.3em] mt-1">CALCULATION DETAILS</p>
                 </div>
 
-                <!-- 비용 산출 테이블 (비율 최적화 반영: 구분/항목/내용/수량/단가/총금액/비고) -->
+                <!-- 비용 산출 테이블 -->
                 <table class="cost-table">
                     <colgroup>
                         <col width="9%"><col width="13%"><col width="26%"><col width="11%"><col width="13%"><col width="14%"><col width="14%">
@@ -534,9 +553,9 @@
                             <th class="py-2 text-slate-800 leading-tight font-extrabold">구분</th>
                             <th class="py-2 text-slate-800 leading-tight font-extrabold">항목</th>
                             <th class="py-2 text-slate-800 leading-tight font-extrabold">내용</th>
-                            <th class="py-2 text-slate-800 leading-tight font-extrabold whitespace-nowrap">인원/객실수<br>차량대수</th>
-                            <th class="py-2 text-slate-800 leading-tight font-extrabold">원화 단가<br><span class="font-normal text-[10px]">KRW</span></th>
-                            <th class="py-2 text-slate-800 leading-tight font-extrabold">총금액<br><span class="font-normal text-[10px]">KRW</span></th>
+                            <th class="py-2 text-slate-800 leading-tight font-extrabold whitespace-nowrap">수량/기준</th>
+                            <th class="py-2 text-slate-800 leading-tight font-extrabold">단가<br><span class="font-normal text-[10px]">(KRW 등)</span></th>
+                            <th class="py-2 text-slate-800 leading-tight font-extrabold">총금액</th>
                             <th class="py-2 text-slate-800 leading-tight font-extrabold">비고</th>
                         </tr>
                     </thead>
@@ -553,7 +572,9 @@
                     </p>
                 </div>
                 <div class="mt-3 text-center border-t border-slate-200 pt-2 pb-0 calc-powered">
-                    <p class="text-[11px] text-slate-500">[System Powered by TOURMAKER] 본 산출내역서는 <a href="http://tourmaker.kr" target="_blank" class="font-bold text-slate-700 hover:underline">투어메이커</a>의 기획과 트래블 테크 기술 제휴로 제작되었습니다.</p>
+                    <p id="footer-powered-text" class="text-[11px] text-slate-500">
+                        <!-- JS에서 동적 주입 -->
+                    </p>
                 </div>
             </div>
         </div>
@@ -565,11 +586,11 @@
         // --- [NEW] URL 초기화 파라미터 & 세션 감지 ---
         const initialUrlParams = new URLSearchParams(window.location.search);
         if (initialUrlParams.get('init') === 'true') {
-            // 브라우저 세션(단기 기억)에 이 창은 '백지 모드'임을 각인 (새로고침 방어용)
             sessionStorage.setItem('forceBlankMode', 'true');
-            // 파라미터 지우기 (URL 깔끔하게 유지)
             window.history.replaceState({}, document.title, window.location.pathname);
         }
+
+        const isBlankMode = sessionStorage.getItem('forceBlankMode') === 'true';
 
         // --- 1. 유틸리티 함수 ---
         const unFmt = str => {
@@ -621,7 +642,7 @@
                 page.style.minHeight = '297mm';
                 page.classList.remove('preview-expanded');
 
-                const desiredGap = 92; // 약 24mm 정도의 웹 편집용 하단 안전 여백
+                const desiredGap = 92; 
                 const pageRect = page.getBoundingClientRect();
                 const tableRect = table.getBoundingClientRect();
                 const currentGap = pageRect.bottom - tableRect.bottom;
@@ -647,7 +668,7 @@
             document.fonts.ready.then(() => setTimeout(syncItineraryPreviewHeight, 80));
         }
 
-// --- 2. 기본 상태(State) 데이터 탑재 (황지정보산업고 기준) ---
+// --- 2. 기본 상태(State) 데이터 탑재 ---
         const poiDB = {
             "에코랜드": "곶자왈 원시림을 달리는 낭만적인 클래식 기차여행",
             "신화월드테마파크": "캐릭터와 함께하는 짜릿한 놀이기구 테마파크 체험",
@@ -707,13 +728,12 @@
             ]
         };
 
-        // [NEW] 세션 메모리에 '백지 모드'가 켜져 있으면 기본값을 강제로 비워버림
-        if (sessionStorage.getItem('forceBlankMode') === 'true') {
+        if (isBlankMode) {
             days = [{ date: "", hotel: "", desc: "", meal: "" }];
             costs = { flight: [], local: [], domestic: [] };
         }
 
-        // --- 3. 우측 일정표 렌더링 (구조 붕괴 방지 및 자연스러운 여백) ---
+        // --- 3. 우측 일정표 렌더링 ---
         function renderItinerary() {
             const container = document.getElementById('itinerary-container');
             let html = '';
@@ -725,7 +745,6 @@
                 }
             });
 
-            // 글자 크기와 여백 최적화
             const len = days.length;
             const baseSize = Math.max(12, 16 - (len * 0.7)); 
             const txtSzStyle = `font-size: ${baseSize}px;`;
@@ -809,7 +828,7 @@
             });
         }
 
-        // 공통 헤더 및 비용 7열 렌더링
+        // 공통 헤더 및 비용 렌더링
         function renderHeaderAndCosts() {
             const title = document.getElementById('inp-title').value;
             const date = document.getElementById('inp-date').value;
@@ -852,17 +871,14 @@
                     
                     subHtml += `<tr class="bg-white">`;
                     
-                    // 1. 대분류
                     if (i === 0) {
                         subHtml += `<td rowspan="${validItems.length}" class="text-center font-extrabold bg-slate-50 text-slate-800 tracking-tight text-[12px] align-middle">${groupCatName}</td>`;
                     }
                     
-                    // 2. 항목 (이름이 같으면 병합)
                     if (i === 0 || c.name !== validItems[i-1].name) {
                         subHtml += `<td rowspan="${getRowspanMulti(validItems, i, ['name'])}" class="text-center font-bold text-slate-800 text-[12px] align-middle break-keep">${esc(c.name)}</td>`;
                     }
 
-                    // 3. 내용 (이름과 내용이 둘 다 같으면 병합)
                     if (i === 0 || c.name !== validItems[i-1].name || c.desc !== validItems[i-1].desc) {
                         subHtml += `<td rowspan="${getRowspanMulti(validItems, i, ['name', 'desc'])}" class="text-center px-3 font-medium text-slate-800 text-[12px] align-middle leading-snug break-keep">${esc(c.desc)}</td>`;
                     }
@@ -885,9 +901,9 @@
                 return { html: subHtml, sum: subTotal };
             }
 
-            const flightRes = renderGroup("항공료", costs.flight, "(1) 합계 - 항공료");
-            const localRes = renderGroup("제주(현지)<br>발생비용", costs.local, "(2) 합계 - 제주(현지) 발생 비용");
-            const domesticRes = renderGroup("국내 발생<br>비용", costs.domestic, "(3) 합계 - 국내 발생 비용");
+            const flightRes = renderGroup("제1경비<br>(항공/선박)", costs.flight, "(1) 합계 - 제1경비");
+            const localRes = renderGroup("현지<br>발생비용", costs.local, "(2) 합계 - 현지 발생 비용");
+            const domesticRes = renderGroup("수수료 및<br>기타비용", costs.domestic, "(3) 합계 - 기타 비용");
 
             costHtml += flightRes.html + localRes.html + domesticRes.html;
             
@@ -900,7 +916,7 @@
                 <td colspan="2" class="text-right pr-3 font-black text-[15px] text-blue-800 tracking-tighter">₩ ${fmtTotal(grandTotal)}</td>
             </tr>
             <tr class="bg-slate-100 border-b-2 border-slate-900">
-                <td colspan="5" class="text-center py-2 font-bold text-[12px] text-slate-600">(2)+(3) 행사 비용 합계 <span class="font-normal text-[10px]">(항공료 제외)</span></td>
+                <td colspan="5" class="text-center py-2 font-bold text-[12px] text-slate-600">(2)+(3) 행사 비용 합계 <span class="font-normal text-[10px]">(제1경비 제외)</span></td>
                 <td colspan="2" class="text-right pr-3 font-black text-[13px] text-slate-700 tracking-tight">₩ ${fmtTotal(eventTot)}</td>
             </tr>`;
 
@@ -908,26 +924,62 @@
             document.getElementById('top-total').innerText = fmtTotal(grandTotal);
         }
 
-        // --- 4. 업체 선택 및 워드 다운로드 분기 ---
+        // --- 4. 업체 선택 및 워터마크 동적 변경 (타 여행사 B2B 대응) ---
         function handleAgencyChange() {
             const agency = document.getElementById('inp-agency').value;
             const wordBtn = document.getElementById('btn-word-download');
+            const customFields = document.getElementById('custom-agency-fields');
             
-            if (agency === 'jeju') {
-                wordBtn.classList.remove('hidden');
+            // 커스텀 입력창 토글
+            if (agency === 'custom') {
+                customFields.classList.remove('hidden');
+                wordBtn.classList.remove('hidden'); // 커스텀도 워드 지원
             } else {
-                wordBtn.classList.add('hidden');
+                customFields.classList.add('hidden');
+                if (agency === 'jeju') wordBtn.classList.remove('hidden');
+                else wordBtn.classList.add('hidden');
             }
 
-            const agencyHtml = agency === 'jeju' 
-                ? `<div class="text-[18px] font-black text-slate-800 tracking-widest mt-1">(주)제주테마투어</div><div class="text-[11px] font-bold text-slate-500 mt-1">담당: 문정희 (010-2645-7524)</div>`
-                : `<a href="http://tourmaker.kr" target="_blank"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHfgIX70O5k6Anuo0UgALIdaG9jSga9auHu3uyz0uEirylGPAJnjN_qQbvEGMUvPqUQf_g9FMNUHRxlDcUBf4vZ3Mpy4TnA9WxbmzWYK11gt2zuy_Irl4wctNFjcjLyPo0GPXV792o_J7L9guRMuDfeC1gy7USwywjYbECZgzcsHybuGRRAXAnO1eNmP8/s320/logo.png" alt="TOURMAKER" class="h-[36px] object-contain float-right mb-1"></a><div class="clear-both"></div>`;
+            // 우측 상단 로고/이름 출력
+            let agencyHtml = '';
+            let footerText = '';
+            let currentAgencyName = '투어메이커';
+
+            if (agency === 'tourmaker') {
+                agencyHtml = `<a href="http://tourmaker.kr" target="_blank"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHfgIX70O5k6Anuo0UgALIdaG9jSga9auHu3uyz0uEirylGPAJnjN_qQbvEGMUvPqUQf_g9FMNUHRxlDcUBf4vZ3Mpy4TnA9WxbmzWYK11gt2zuy_Irl4wctNFjcjLyPo0GPXV792o_J7L9guRMuDfeC1gy7USwywjYbECZgzcsHybuGRRAXAnO1eNmP8/s320/logo.png" alt="TOURMAKER" class="h-[36px] object-contain float-right mb-1"></a><div class="clear-both"></div>`;
+                footerText = `[System Powered by TOURMAKER] 본 산출내역서는 <a href="http://tourmaker.kr" target="_blank" class="font-bold text-slate-700 hover:underline">투어메이커</a>의 기획과 트래블 테크 기술 제휴로 제작되었습니다.`;
+            } 
+            else if (agency === 'jeju') {
+                currentAgencyName = '(주)제주테마투어';
+                agencyHtml = `<div class="text-[18px] font-black text-slate-800 tracking-widest mt-1">${currentAgencyName}</div><div class="text-[11px] font-bold text-slate-500 mt-1">담당: 문정희 (010-2645-7524)</div>`;
+                footerText = `[System Powered by TOURMAKER] 본 산출내역서는 <strong>${currentAgencyName}</strong>의 기획과 <a href="http://tourmaker.kr" target="_blank" class="font-bold text-slate-700 hover:underline">투어메이커</a>의 트래블 테크 기술 제휴로 제작되었습니다.`;
+            }
+            else if (agency === 'custom') {
+                const cName = document.getElementById('inp-custom-name').value || '여행사명 입력';
+                const cContact = document.getElementById('inp-custom-contact').value || '연락처 입력';
+                const cLogo = document.getElementById('inp-custom-logo').value;
+                currentAgencyName = cName;
+
+                if (cLogo) {
+                    agencyHtml = `<img src="${esc(cLogo)}" alt="${esc(cName)}" class="h-[36px] object-contain float-right mb-1" onerror="this.style.display='none'"><div class="clear-both"></div>`;
+                } else {
+                    agencyHtml = `<div class="text-[18px] font-black text-slate-800 tracking-widest mt-1">${esc(cName)}</div><div class="text-[11px] font-bold text-slate-500 mt-1">${esc(cContact)}</div>`;
+                }
+                footerText = `[System Powered by TOURMAKER] 본 산출내역서는 <strong>${esc(cName)}</strong>의 기획과 <a href="http://tourmaker.kr" target="_blank" class="font-bold text-slate-700 hover:underline">투어메이커</a>의 트래블 테크 기술 제휴로 제작되었습니다.`;
+            }
             
             document.getElementById('out-agency-1').innerHTML = agencyHtml;
+            document.getElementById('footer-powered-text').innerHTML = footerText;
         }
 
         function exportToWord() {
             const title = document.getElementById('inp-title').value.split(' ')[0] || "고객";
+            const agency = document.getElementById('inp-agency').value;
+            
+            let exportAgencyName = "투어메이커";
+            if(agency === 'jeju') exportAgencyName = "(주)제주테마투어";
+            else if (agency === 'custom') exportAgencyName = document.getElementById('inp-custom-name').value || "여행사";
+
             const sourceHTML = `
                 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
                 <head>
@@ -941,7 +993,7 @@
                     </style>
                 </head>
                 <body>
-                    <div style="text-align:right; margin-bottom: 10px; font-weight: bold; font-size: 14pt;">(주)제주테마투어</div>
+                    <div style="text-align:right; margin-bottom: 10px; font-weight: bold; font-size: 14pt;">${exportAgencyName}</div>
                     <div style="font-size: 20pt; font-weight: bold; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom:10px;">상세 일정 및 산출 내역서</div>
                     
                     <h3>1. 일정표</h3>
@@ -962,7 +1014,7 @@
             const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
-            link.href = url; link.download = `${title}_행사견적_제주테마투어.doc`;
+            link.href = url; link.download = `${title}_행사견적_${exportAgencyName}.doc`;
             document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
         }
 
@@ -1032,10 +1084,13 @@
             else alert('추가할 설명이 없습니다.');
         }
 
-        // --- 7. 템플릿 관리 ---
+        // --- 7. 템플릿 관리 (커스텀 정보 포함하여 저장) ---
         function getFormData() {
             return {
                 agency: document.getElementById('inp-agency').value,
+                customName: document.getElementById('inp-custom-name').value,
+                customContact: document.getElementById('inp-custom-contact').value,
+                customLogo: document.getElementById('inp-custom-logo').value,
                 title: document.getElementById('inp-title').value,
                 date: document.getElementById('inp-date').value,
                 pax: document.getElementById('inp-pax').value,
@@ -1047,6 +1102,9 @@
 
         function setFormData(data) {
             document.getElementById('inp-agency').value = data.agency || 'tourmaker';
+            document.getElementById('inp-custom-name').value = data.customName || '';
+            document.getElementById('inp-custom-contact').value = data.customContact || '';
+            document.getElementById('inp-custom-logo').value = data.customLogo || '';
             document.getElementById('inp-title').value = data.title || '';
             document.getElementById('inp-date').value = data.date || '';
             document.getElementById('inp-pax').value = data.pax || '';
@@ -1130,6 +1188,10 @@
 
         function clearForm() {
             if(!confirm('모든 입력 데이터를 초기화하시겠습니까?')) return;
+            document.getElementById('inp-agency').value = 'tourmaker';
+            document.getElementById('inp-custom-name').value = '';
+            document.getElementById('inp-custom-contact').value = '';
+            document.getElementById('inp-custom-logo').value = '';
             document.getElementById('inp-title').value = '';
             document.getElementById('inp-date').value = '';
             document.getElementById('inp-pax').value = '';
@@ -1144,22 +1206,24 @@
             renderHeaderAndCosts();
         }
 
-        // --- 8. 초기화 ---
-        window.onload = () => {
-            // [NEW] 세션 메모리에 '백지 모드'가 켜져 있으면 HTML 입력창도 싹 비움
-            if (sessionStorage.getItem('forceBlankMode') === 'true') {
-                 document.getElementById('inp-title').value = '';
-                 document.getElementById('inp-date').value = '';
-                 document.getElementById('inp-pax').value = '';
-                 document.getElementById('inp-issue').value = '';
+        // --- 8. 초기화 (렌더링) ---
+        function initApp() {
+            if (!isBlankMode) {
+                document.getElementById('inp-title').value = '황지정보산업고등학교 제주도 테마여행';
+                document.getElementById('inp-date').value = '2026.09.08 ~ 09.11 (3박 4일)';
+                document.getElementById('inp-pax').value = '45명기준(학생 40+ 교사5)';
+                document.getElementById('inp-issue').value = '2026.03.20 / 국내행사 (환율 미적용)';
             }
-
+            
             handleAgencyChange();
             updatePresetDropdown();
             renderItinerary();
             renderCostInputs();
             renderHeaderAndCosts();
-        };
+        }
+
+        // 즉시 실행 (window.onload 대기 없음)
+        initApp();
 
     </script>
 </body>
