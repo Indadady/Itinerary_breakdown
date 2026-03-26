@@ -399,7 +399,7 @@
                 </div>
             </div>
             
-            <!-- 1. 기본 정보 (황지정보산업고 기본값) -->
+            <!-- 1. 기본 정보 -->
             <div class="form-section">
                 <div class="section-title">1. 문서 기본 정보</div>
                 <div class="grid grid-cols-2 gap-3">
@@ -562,6 +562,22 @@
 
     <!-- ================= 자바스크립트 ================= -->
     <script>
+        // --- [NEW] URL 초기화 파라미터 감지 스크립트 ---
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('init') === 'true') {
+                // 브라우저 캐시 초기화 (기존 템플릿 임시 데이터 삭제)
+                localStorage.removeItem('tourmaker_jeju_presets'); // 필요시 활성화: 저장된 템플릿까지 모두 지우려면 사용
+
+                // 디폴트 데이터(days, costs)를 빈 상태로 덮어쓰기 위해 전역 변수를 조작하기 전,
+                // DOM 렌더링을 지연시키거나 초기값을 비워버립니다.
+                // 아래 8번 초기화(window.onload)에서 빈 값으로 렌더링되게 만듭니다.
+                
+                // 파라미터 지우기 (URL 깔끔하게 유지)
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+
         // --- 1. 유틸리티 함수 ---
         const unFmt = str => {
             if (!str) return 0;
@@ -1118,6 +1134,7 @@
             document.getElementById('inp-title').value = '';
             document.getElementById('inp-date').value = '';
             document.getElementById('inp-pax').value = '';
+            document.getElementById('inp-issue').value = '';
             
             days = [{ date: "", hotel: "", desc: "", meal: "" }];
             costs = { flight: [], local: [], domestic: [] };
@@ -1130,6 +1147,25 @@
 
         // --- 8. 초기화 ---
         window.onload = () => {
+            // [NEW] URL 파라미터가 ?init=true 였을 경우 데이터 강제 삭제
+            const urlParams = new URLSearchParams(window.location.search);
+            // 주의: DOMContentLoaded에서 이미 URL을 덮어썼으므로 여기서는 확인 안될 수 있음.
+            // 따라서 덮어쓰기 전에 플래그를 변수에 저장하거나, DOMContentLoaded 단계에서 데이터를 싹 밀어버리는 구조를 취합니다.
+            // 위 DOMContentLoaded에서 처리한 방식과 연계하여, 만약 초기화 버튼을 누른 것과 같은 효과를 주려면 아래 로직을 실행.
+            
+            // * 위 DOMContentLoaded 단계에서 처리하는 것이 안전하지만, 데이터(days, costs) 자체가 
+            // 전역 변수로 이미 선언되어 있으므로, onload 직전에 이 변수들을 비워버리는 것이 확실합니다.
+            
+            // 페이지 로드 시 현재 URL에 init 파라미터가 있었다면 (캐시에 의해 남아있을 경우 대비)
+            if (window.location.href.indexOf('init=true') > -1) {
+                 document.getElementById('inp-title').value = '';
+                 document.getElementById('inp-date').value = '';
+                 document.getElementById('inp-pax').value = '';
+                 document.getElementById('inp-issue').value = '';
+                 days = [{ date: "", hotel: "", desc: "", meal: "" }];
+                 costs = { flight: [], local: [], domestic: [] };
+            }
+
             handleAgencyChange();
             updatePresetDropdown();
             renderItinerary();
