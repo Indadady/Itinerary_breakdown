@@ -562,11 +562,11 @@
 
     <!-- ================= 자바스크립트 ================= -->
     <script>
-        // --- [NEW] URL 초기화 파라미터 감지 플래그 ---
-        let isInitMode = false;
+        // --- [NEW] URL 초기화 파라미터 & 세션 감지 ---
         const initialUrlParams = new URLSearchParams(window.location.search);
         if (initialUrlParams.get('init') === 'true') {
-            isInitMode = true; // 지우라는 명령을 기억해둠
+            // 브라우저 세션(단기 기억)에 이 창은 '백지 모드'임을 각인 (새로고침 방어용)
+            sessionStorage.setItem('forceBlankMode', 'true');
             // 파라미터 지우기 (URL 깔끔하게 유지)
             window.history.replaceState({}, document.title, window.location.pathname);
         }
@@ -706,6 +706,12 @@
                 { name: "알선수수료", desc: "운영관리비", qty: 1, krw: 2500000, note: "업체인솔동행" }
             ]
         };
+
+        // [NEW] 세션 메모리에 '백지 모드'가 켜져 있으면 기본값을 강제로 비워버림
+        if (sessionStorage.getItem('forceBlankMode') === 'true') {
+            days = [{ date: "", hotel: "", desc: "", meal: "" }];
+            costs = { flight: [], local: [], domestic: [] };
+        }
 
         // --- 3. 우측 일정표 렌더링 (구조 붕괴 방지 및 자연스러운 여백) ---
         function renderItinerary() {
@@ -1140,14 +1146,12 @@
 
         // --- 8. 초기화 ---
         window.onload = () => {
-            // [NEW] 아까 기억해둔 isInitMode가 켜져 있다면 데이터를 강제로 비움
-            if (isInitMode) {
+            // [NEW] 세션 메모리에 '백지 모드'가 켜져 있으면 HTML 입력창도 싹 비움
+            if (sessionStorage.getItem('forceBlankMode') === 'true') {
                  document.getElementById('inp-title').value = '';
                  document.getElementById('inp-date').value = '';
                  document.getElementById('inp-pax').value = '';
                  document.getElementById('inp-issue').value = '';
-                 days = [{ date: "", hotel: "", desc: "", meal: "" }];
-                 costs = { flight: [], local: [], domestic: [] };
             }
 
             handleAgencyChange();
