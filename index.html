@@ -842,7 +842,7 @@
                 boxIncExc.classList.add('hidden');
             }
 
-            // [NEW] 하단 안내문 노출/숨김 처리
+            // 하단 안내문 노출/숨김 처리
             const taxContainer = document.getElementById('out-tax-notice-container');
             if (taxNoticeText) {
                 taxContainer.classList.remove('hidden');
@@ -882,7 +882,6 @@
                     
                     subHtml += `<tr class="bg-white">`;
                     
-                    // [NEW] '구분' 열이 삭제됨에 따라 항목/내용부터 렌더링 시작
                     if (i === 0 || c.name !== validItems[i-1].name) {
                         subHtml += `<td rowspan="${getRowspanMulti(validItems, i, ['name'])}" class="text-center font-bold text-slate-800 align-middle break-keep">${esc(c.name)}</td>`;
                     }
@@ -891,18 +890,20 @@
                         subHtml += `<td rowspan="${getRowspanMulti(validItems, i, ['name', 'desc'])}" class="text-center px-3 font-medium text-slate-800 align-middle leading-snug break-keep">${esc(c.desc)}</td>`;
                     }
 
+                    // 금액 셀에 whitespace-nowrap 추가로 줄바꿈 원천 차단
                     subHtml += `
                         <td class="text-center font-bold text-slate-700 align-middle">${fmt(q)}</td>
                         <td class="text-right pr-3 font-semibold text-slate-800 align-middle">${fmt(k)}</td>
-                        <td class="text-right pr-3 font-extrabold text-slate-900 align-middle">${fmtTotal(rowTot)}</td>
+                        <td class="text-right pr-3 font-extrabold text-slate-900 align-middle whitespace-nowrap">${fmtTotal(rowTot)}</td>
                         <td class="text-center px-1 text-slate-600 tracking-tight break-keep align-middle">${esc(c.note)}</td>
                     </tr>`;
                 });
 
                 if(subTotal > 0) {
+                    // 원화(₩) 기호 삭제, whitespace-nowrap 추가
                     subHtml += `<tr class="subtotal-row">
                         <td colspan="4" class="text-center py-2 font-bold">${subtotalLabel}</td>
-                        <td class="text-right pr-3 font-black tracking-tight text-slate-800">₩ ${fmtTotal(subTotal)}</td>
+                        <td class="text-right pr-3 font-black tracking-tight text-slate-800 whitespace-nowrap">${fmtTotal(subTotal)}</td>
                         <td class="bg-slate-50 border-b-2 border-slate-400"></td>
                     </tr>`;
                 }
@@ -930,14 +931,22 @@
             if(hasDomestic) activeSecs.push('(3)');
             let secStr = activeSecs.length > 0 ? activeSecs.join('+') + ' ' : '';
 
-            // 교통비(1그룹)가 존재하고, 나머지 비용이 하나라도 있을 때만 '제외 내역' 표시
+            // [NEW] 비용 합계에서 제외될 1그룹의 항목명(예: '교통비')을 스마트하게 찾아내기
+            let exclLabel = '1그룹';
+            const firstValidFlight = costs.flight.find(c => c.name);
+            if (firstValidFlight && firstValidFlight.name) {
+                exclLabel = firstValidFlight.name;
+            }
+
+            // 1그룹이 존재하고, 나머지 비용이 하나라도 있을 때만 '제외 내역' 표시
             const showEventTot = hasFlight && (hasLocal || hasDomestic);
             const borderClass = showEventTot ? "" : "border-b-2 border-slate-900"; 
 
+            // 전체 합계 금액란 (원화 ₩ 삭제, whitespace-nowrap 추가)
             costHtml += `
             <tr class="bg-slate-100 border-t-[3px] border-slate-900 ${borderClass}">
                 <td colspan="4" class="text-center py-3 font-black tracking-wide text-slate-900">${secStr}전 체 합 계 금 액</td>
-                <td colspan="2" class="text-right pr-3 font-black text-[15px] text-blue-800 tracking-tighter">₩ ${fmtTotal(grandTotal)}</td>
+                <td colspan="2" class="text-right pr-3 font-black text-[15px] text-blue-800 tracking-tighter whitespace-nowrap">${fmtTotal(grandTotal)}</td>
             </tr>`;
 
             if (showEventTot) {
@@ -946,10 +955,11 @@
                 if(hasDomestic) eventSecs.push('(3)');
                 let eventSecStr = eventSecs.join('+');
                 
+                // 제외 항목명 동적 반영 (원화 ₩ 삭제, whitespace-nowrap 추가)
                 costHtml += `
                 <tr class="bg-slate-100 border-b-2 border-slate-900">
-                    <td colspan="4" class="text-center py-2 font-bold text-slate-600">${eventSecStr} 비용 합계 <span class="font-normal text-[10px]">(1그룹 제외)</span></td>
-                    <td colspan="2" class="text-right pr-3 font-black text-slate-700 tracking-tight">₩ ${fmtTotal(eventTot)}</td>
+                    <td colspan="4" class="text-center py-2 font-bold text-slate-600">${eventSecStr} 비용 합계 <span class="font-normal text-[10px]">(${esc(exclLabel)} 제외)</span></td>
+                    <td colspan="2" class="text-right pr-3 font-black text-slate-700 tracking-tight whitespace-nowrap">${fmtTotal(eventTot)}</td>
                 </tr>`;
             }
 
