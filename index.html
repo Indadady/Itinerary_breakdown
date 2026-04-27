@@ -482,7 +482,10 @@
                     </div>
                 </div>
 
-                <div class="itinerary-overflow-note no-print shrink-0">※ 인쇄 시 내용이 길거나 글자 크기가 크면 자동으로 다음 장으로 넘어가서 깔끔하게 인쇄됩니다.</div>
+                <div class="itinerary-overflow-note no-print shrink-0">
+                    ※ 인쇄 시 내용이 길거나 글자 크기가 크면 자동으로 다음 장으로 넘어갑니다.<br>
+                    ※ <b>[줄바꿈 팁]</b> 엑셀처럼 <b>Enter (또는 Alt+Enter)</b>를 치면 의미 단위로 깔끔하게 줄바꿈할 수 있습니다.
+                </div>
             </div>
 
             <!-- [2페이지] 산출내역서 -->
@@ -553,6 +556,14 @@
         const fmt = n => (n === 0 || n === '' || isNaN(n)) ? '' : Number(n).toLocaleString();
         const fmtTotal = n => Number(n || 0).toLocaleString();
         const esc = str => String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+        // [NEW] 엑셀식 Alt+Enter (또는 Enter) 줄바꿈 처리
+        function handleEditKeydown(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // 브라우저 기본 동작(div나 p 태그 자동생성) 방지
+                document.execCommand('insertText', false, '\n'); // 순수 줄바꿈(\n) 텍스트 삽입
+            }
+        }
 
         // --- [NEW] 글자 크기 변경 실시간 반영 로직 (일정표 & 내역서 분리) ---
         function changeItinFontSize() {
@@ -732,7 +743,7 @@
                                 <span class="font-extrabold text-blue-900 tracking-widest mr-2">숙소</span>
                                 <span class="font-bold text-blue-900 mx-2">:</span>
                                 <div class="flex-1 text-left">
-                                    <div contenteditable="true" class="edit-input font-bold text-blue-900 inline-block" onblur="updateDay(${i}, 'hotel', this.innerText)">${esc(day.hotel)}</div>
+                                    <div contenteditable="true" class="edit-input font-bold text-blue-900 inline-block" onblur="updateDay(${i}, 'hotel', this.innerText)" onkeydown="handleEditKeydown(event)">${esc(day.hotel)}</div>
                                 </div>
                             </div>
                         </td>
@@ -744,7 +755,7 @@
                 <tbody class="border-b border-slate-300 last:border-b-0">
                     <tr class="bg-white">
                         <td rowspan="${rs}" class="text-center font-extrabold text-slate-900 border-r border-slate-300 align-middle relative ${pyClass}">
-                            <div contenteditable="true" class="edit-input text-center tracking-wide" onblur="updateDay(${i}, 'date', this.innerText)">${esc(day.date)}</div>
+                            <div contenteditable="true" class="edit-input text-center tracking-wide" onblur="updateDay(${i}, 'date', this.innerText)" onkeydown="handleEditKeydown(event)">${esc(day.date)}</div>
                         </td>
                         <td class="text-left px-5 leading-relaxed font-medium text-slate-800 border-r border-slate-300 align-middle relative ${pyClass}">
                             <div class="action-btn-container absolute left-[-42px] top-2 flex flex-col gap-1 w-9 z-10 no-print">
@@ -752,10 +763,10 @@
                                 <button onclick="toggleHotel(${i})" class="action-btn btn-hotel-row" title="숙소란 토글">🏨<br>숙소</button>
                                 <button onclick="applyPOISingle(${i})" class="action-btn btn-poi-row" title="설명 채우기">✨<br>설명</button>
                             </div>
-                            <div contenteditable="true" class="edit-input w-full text-left" onblur="updateDay(${i}, 'desc', this.innerText)">${esc(day.desc)}</div>
+                            <div contenteditable="true" class="edit-input w-full text-left" onblur="updateDay(${i}, 'desc', this.innerText)" onkeydown="handleEditKeydown(event)">${esc(day.desc)}</div>
                         </td>
                         <td rowspan="${rs}" class="px-3 font-bold text-slate-800 leading-relaxed align-middle ${pyClass}">
-                            <div contenteditable="true" class="edit-input w-full text-center" onblur="updateDay(${i}, 'meal', this.innerText)">${esc(day.meal)}</div>
+                            <div contenteditable="true" class="edit-input w-full text-center" onblur="updateDay(${i}, 'meal', this.innerText)" onkeydown="handleEditKeydown(event)">${esc(day.meal)}</div>
                         </td>
                     </tr>
                     ${hotelRow}
