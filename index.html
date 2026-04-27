@@ -324,7 +324,7 @@
                     </div>
 
                     <div class="col-span-2">
-                        <label class="input-label">산출내역서 제목 (견적서, 인보이스 등 변경 가능)</label>
+                        <label class="input-label">산출내역서 제목 (견적서, 정산서, 인보이스 등 변경 가능)</label>
                         <input type="text" id="inp-cost-title" class="input-field font-bold text-indigo-700 bg-indigo-50/30" value="가격 산출 내역서" oninput="renderHeaderAndCosts()">
                     </div>
 
@@ -361,32 +361,35 @@
                 </div>
             </div>
 
-            <!-- 2. 산출내역 -->
+            <!-- 2. 산출내역 (그룹별 커스텀) -->
             <div class="form-section">
                 <div class="section-title">2. 비용 산출 내역</div>
                 <div class="text-xs text-slate-500 mb-4 bg-slate-100 p-2 rounded border border-slate-200">
-                    💡 <strong>Tip:</strong> 1번과 3번 그룹을 비우고 2번 그룹만 채우면 합계란이 상황에 맞게 자동으로 렌더링됩니다. 항목은 자유롭게 입력하세요.
+                    💡 <strong>Tip:</strong> 1번과 3번 그룹을 비우고 2번 그룹만 채우면 합계란이 상황에 맞게 자동으로 렌더링됩니다. 그룹명도 자유롭게 수정하세요.
                 </div>
                 
                 <div class="mb-5">
-                    <div class="flex justify-between items-center mb-2 border-b border-indigo-200 pb-1">
-                        <div class="text-[13px] font-bold text-indigo-800">📦 (1) 비용 그룹 1 (항공/교통 등 자유입력)</div>
+                    <div class="flex items-center gap-2 mb-2 border-b border-indigo-200 pb-1">
+                        <span class="text-[13px] font-bold text-indigo-800 shrink-0">📦 (1) 그룹명:</span>
+                        <input type="text" id="inp-group-flight" class="text-[13px] font-bold text-indigo-900 bg-indigo-50 border border-indigo-200 rounded px-2 py-0.5 outline-none focus:border-indigo-400 flex-1" value="교통비" oninput="renderHeaderAndCosts()" placeholder="예: 교통, 해외 현지비용 등">
                     </div>
                     <div id="cost-flight-list"></div>
                     <button onclick="addCost('flight')" class="w-full text-[11px] bg-indigo-50 border border-dashed border-indigo-300 text-indigo-600 py-2 rounded font-bold hover:bg-indigo-100 transition shadow-sm">+ 1그룹 항목 추가</button>
                 </div>
 
                 <div class="mb-5">
-                    <div class="flex justify-between items-center mb-2 border-b border-green-200 pb-1">
-                        <div class="text-[13px] font-bold text-green-800">📦 (2) 비용 그룹 2 (현지행사 등 자유입력)</div>
+                    <div class="flex items-center gap-2 mb-2 border-b border-green-200 pb-1">
+                        <span class="text-[13px] font-bold text-green-800 shrink-0">📦 (2) 그룹명:</span>
+                        <input type="text" id="inp-group-local" class="text-[13px] font-bold text-green-900 bg-green-50 border border-green-200 rounded px-2 py-0.5 outline-none focus:border-green-400 flex-1" value="제주 현지 경비" oninput="renderHeaderAndCosts()" placeholder="예: 현지경비, 숙박비 등">
                     </div>
                     <div id="cost-local-list"></div>
                     <button onclick="addCost('local')" class="w-full text-[11px] bg-green-50 border border-dashed border-green-300 text-green-600 py-2 rounded font-bold hover:bg-green-100 transition shadow-sm">+ 2그룹 항목 추가</button>
                 </div>
 
                 <div>
-                    <div class="flex justify-between items-center mb-2 border-b border-orange-200 pb-1">
-                        <div class="text-[13px] font-bold text-orange-800">📦 (3) 비용 그룹 3 (수수료/기타 등 자유입력)</div>
+                    <div class="flex items-center gap-2 mb-2 border-b border-orange-200 pb-1">
+                        <span class="text-[13px] font-bold text-orange-800 shrink-0">📦 (3) 그룹명:</span>
+                        <input type="text" id="inp-group-domestic" class="text-[13px] font-bold text-orange-900 bg-orange-50 border border-orange-200 rounded px-2 py-0.5 outline-none focus:border-orange-400 flex-1" value="기타 비용" oninput="renderHeaderAndCosts()" placeholder="예: 국내 내륙비용, 수수료 등">
                     </div>
                     <div id="cost-domestic-list"></div>
                     <button onclick="addCost('domestic')" class="w-full text-[11px] bg-orange-50 border border-dashed border-orange-300 text-orange-600 py-2 rounded font-bold hover:bg-orange-100 transition shadow-sm">+ 3그룹 항목 추가</button>
@@ -489,13 +492,14 @@
                     <p class="text-[10px] font-bold text-slate-500 tracking-[0.3em] mt-1">CALCULATION DETAILS</p>
                 </div>
 
-                <!-- 비용 산출 테이블 ('구분' 열 삭제됨) -->
+                <!-- 비용 산출 테이블 ('구분' 열 부활 및 커스텀 반영) -->
                 <table class="cost-table">
                     <colgroup>
-                        <col width="18%"><col width="28%"><col width="12%"><col width="14%"><col width="14%"><col width="14%">
+                        <col width="12%"><col width="15%"><col width="23%"><col width="10%"><col width="13%"><col width="14%"><col width="13%">
                     </colgroup>
                     <thead>
                         <tr class="bg-slate-100 border-b-2 border-slate-800 text-[12px]">
+                            <th class="py-2 text-slate-800 leading-tight font-extrabold">구분</th>
                             <th class="py-2 text-slate-800 leading-tight font-extrabold">항목</th>
                             <th class="py-2 text-slate-800 leading-tight font-extrabold">내용</th>
                             <th class="py-2 text-slate-800 leading-tight font-extrabold whitespace-nowrap">수량/기준</th>
@@ -672,14 +676,15 @@
             { date: "09/11(금)", hotel: "", desc: "기상 및 조식 후 숙소출발\n노형수퍼마켙 (미디어아트 전시)\n이호테우 말등대 & 무지개해안도로\n14:00 제주공항 도착 후 탑승수속\n15:20 출발 : 제주공항 출발(진에어)\n16:35 도착 : 원주공항 도착 후 학교로 이동 및 해산", meal: "조: 호텔식\n중: 제육볶음\n+고등어구이\n석: -" }
         ];
 
+        // [NEW] 차량비가 flight 에서 local로 이동되었습니다.
         let costs = {
             flight: [
                 { name: "진에어", desc: "원주-제주-원주(학생)", qty: 40, krw: 188200, note: "3월발권기준_유류미변동" },
                 { name: "진에어", desc: "원주-제주-원주(교사)", qty: 5, krw: 188200, note: "3월발권기준_유류미변동" },
-                { name: "항공발권대리점", desc: "발권수수료", qty: 45, krw: 5500, note: "" },
-                { name: "차량비", desc: "대형버스 4일", qty: 1, krw: 3520000, note: "제반비용 포함" }
+                { name: "항공발권대리점", desc: "발권수수료", qty: 45, krw: 5500, note: "" }
             ],
             local: [
+                { name: "차량비", desc: "대형버스 4일", qty: 1, krw: 3520000, note: "제반비용 포함" },
                 { name: "숙박료", desc: "신신호텔월드컵점(3박요금)", qty: 45, krw: 180000, note: "조,석식 포함 (2-3인실)" },
                 { name: "식비", desc: "중식_1일차", qty: 45, krw: 20000, note: "흑우불고기정식" },
                 { name: "식비", desc: "중식_2일차", qty: 45, krw: 13000, note: "토종돼지주물럭" },
@@ -802,6 +807,11 @@
             const issue = document.getElementById('inp-issue').value;
             const perPaxPrice = document.getElementById('inp-per-pax-price').value;
             
+            // 그룹명 커스텀 파라미터 가져오기
+            const grpFlight = document.getElementById('inp-group-flight').value || '1그룹';
+            const grpLocal = document.getElementById('inp-group-local').value || '2그룹';
+            const grpDomestic = document.getElementById('inp-group-domestic').value || '3그룹';
+
             // 포함, 불포함 사항, 안내문
             const incText = document.getElementById('inp-inc').value.trim();
             const excText = document.getElementById('inp-exc').value.trim();
@@ -867,7 +877,8 @@
                 return span;
             }
 
-            function renderGroup(dataArr, subtotalLabel) {
+            // [NEW] renderGroup 인자에 groupCatName(구분 타이틀) 추가
+            function renderGroup(dataArr, subtotalLabel, groupCatName) {
                 let subHtml = '';
                 let subTotal = 0;
                 let validItems = dataArr.filter(c => c.name || c.desc);
@@ -882,6 +893,11 @@
                     
                     subHtml += `<tr class="bg-white">`;
                     
+                    // [NEW] 첫 번째 행일 때 '구분' 열 추가
+                    if (i === 0) {
+                        subHtml += `<td rowspan="${validItems.length}" class="text-center font-extrabold bg-slate-50 text-slate-800 tracking-tight align-middle break-keep">${esc(groupCatName)}</td>`;
+                    }
+
                     if (i === 0 || c.name !== validItems[i-1].name) {
                         subHtml += `<td rowspan="${getRowspanMulti(validItems, i, ['name'])}" class="text-center font-bold text-slate-800 align-middle break-keep">${esc(c.name)}</td>`;
                     }
@@ -900,9 +916,9 @@
                 });
 
                 if(subTotal > 0) {
-                    // 원화(₩) 기호 삭제, whitespace-nowrap 추가
+                    // 원화(₩) 기호 삭제, whitespace-nowrap 추가. 열 1개(구분) 추가되었으므로 colspan 5.
                     subHtml += `<tr class="subtotal-row">
-                        <td colspan="4" class="text-center py-2 font-bold">${subtotalLabel}</td>
+                        <td colspan="5" class="text-center py-2 font-bold">${subtotalLabel}</td>
                         <td class="text-right pr-3 font-black tracking-tight text-slate-800 whitespace-nowrap">${fmtTotal(subTotal)}</td>
                         <td class="bg-slate-50 border-b-2 border-slate-400"></td>
                     </tr>`;
@@ -910,9 +926,9 @@
                 return { html: subHtml, sum: subTotal };
             }
 
-            const flightRes = renderGroup(costs.flight, "(1) 합계");
-            const localRes = renderGroup(costs.local, "(2) 합계");
-            const domesticRes = renderGroup(costs.domestic, "(3) 합계");
+            const flightRes = renderGroup(costs.flight, "(1) 합계", grpFlight);
+            const localRes = renderGroup(costs.local, "(2) 합계", grpLocal);
+            const domesticRes = renderGroup(costs.domestic, "(3) 합계", grpDomestic);
 
             costHtml += flightRes.html + localRes.html + domesticRes.html;
             
@@ -931,21 +947,17 @@
             if(hasDomestic) activeSecs.push('(3)');
             let secStr = activeSecs.length > 0 ? activeSecs.join('+') + ' ' : '';
 
-            // [NEW] 비용 합계에서 제외될 1그룹의 항목명(예: '교통비')을 스마트하게 찾아내기
-            let exclLabel = '1그룹';
-            const firstValidFlight = costs.flight.find(c => c.name);
-            if (firstValidFlight && firstValidFlight.name) {
-                exclLabel = firstValidFlight.name;
-            }
+            // [NEW] 제외 그룹명은 사용자가 1그룹에 타이핑한 제목을 그대로 가져옴
+            let exclLabel = grpFlight;
 
             // 1그룹이 존재하고, 나머지 비용이 하나라도 있을 때만 '제외 내역' 표시
             const showEventTot = hasFlight && (hasLocal || hasDomestic);
             const borderClass = showEventTot ? "" : "border-b-2 border-slate-900"; 
 
-            // 전체 합계 금액란 (원화 ₩ 삭제, whitespace-nowrap 추가)
+            // 전체 합계 금액란 (원화 ₩ 삭제, whitespace-nowrap 추가, colspan 5)
             costHtml += `
             <tr class="bg-slate-100 border-t-[3px] border-slate-900 ${borderClass}">
-                <td colspan="4" class="text-center py-3 font-black tracking-wide text-slate-900">${secStr}전 체 합 계 금 액</td>
+                <td colspan="5" class="text-center py-3 font-black tracking-wide text-slate-900">${secStr}전 체 합 계 금 액</td>
                 <td colspan="2" class="text-right pr-3 font-black text-[15px] text-blue-800 tracking-tighter whitespace-nowrap">${fmtTotal(grandTotal)}</td>
             </tr>`;
 
@@ -955,10 +967,10 @@
                 if(hasDomestic) eventSecs.push('(3)');
                 let eventSecStr = eventSecs.join('+');
                 
-                // 제외 항목명 동적 반영 (원화 ₩ 삭제, whitespace-nowrap 추가)
+                // 제외 항목명 동적 반영 (원화 ₩ 삭제, whitespace-nowrap 추가, colspan 5)
                 costHtml += `
                 <tr class="bg-slate-100 border-b-2 border-slate-900">
-                    <td colspan="4" class="text-center py-2 font-bold text-slate-600">${eventSecStr} 비용 합계 <span class="font-normal text-[10px]">(${esc(exclLabel)} 제외)</span></td>
+                    <td colspan="5" class="text-center py-2 font-bold text-slate-600">${eventSecStr} 비용 합계 <span class="font-normal text-[10px]">(${esc(exclLabel)} 제외)</span></td>
                     <td colspan="2" class="text-right pr-3 font-black text-slate-700 tracking-tight whitespace-nowrap">${fmtTotal(eventTot)}</td>
                 </tr>`;
             }
@@ -1215,6 +1227,9 @@
             return {
                 itinFontSize: document.getElementById('inp-font-size-itin').value,
                 costFontSize: document.getElementById('inp-font-size-cost').value,
+                grpFlight: document.getElementById('inp-group-flight').value,
+                grpLocal: document.getElementById('inp-group-local').value,
+                grpDomestic: document.getElementById('inp-group-domestic').value,
                 taxNotice: document.getElementById('inp-tax-notice').value,
                 costTitle: document.getElementById('inp-cost-title').value,
                 agency: document.getElementById('inp-agency').value,
@@ -1234,11 +1249,14 @@
         }
 
         function setFormData(data) {
-            // [NEW] 폰트 사이즈 복원
             document.getElementById('inp-font-size-itin').value = data.itinFontSize || 14;
             document.getElementById('inp-font-size-cost').value = data.costFontSize || 12;
             changeItinFontSize(); 
             changeCostFontSize();
+
+            document.getElementById('inp-group-flight').value = data.grpFlight || '교통비';
+            document.getElementById('inp-group-local').value = data.grpLocal || '제주 현지 경비';
+            document.getElementById('inp-group-domestic').value = data.grpDomestic || '기타 비용';
 
             if (data.taxNotice !== undefined) document.getElementById('inp-tax-notice').value = data.taxNotice;
             document.getElementById('inp-cost-title').value = data.costTitle || '가격 산출 내역서';
@@ -1337,6 +1355,10 @@
             document.getElementById('inp-font-size-cost').value = 12;
             changeItinFontSize();
             changeCostFontSize();
+            
+            document.getElementById('inp-group-flight').value = "교통비";
+            document.getElementById('inp-group-local').value = "제주 현지 경비";
+            document.getElementById('inp-group-domestic').value = "기타 비용";
             
             document.getElementById('inp-tax-notice').value = "";
             document.getElementById('inp-cost-title').value = '가격 산출 내역서';
