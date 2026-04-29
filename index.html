@@ -200,6 +200,9 @@
             
             img, svg { max-width: 100% !important; image-rendering: -webkit-optimize-contrast; print-color-adjust: exact !important; }
             a { color: inherit !important; text-decoration: none !important; }
+            
+            /* JPG 로고 배경 이질감(탁해짐) 제거용 강력 인쇄 필터 */
+            .logo-cheongchun { filter: contrast(1.15) brightness(1.05) !important; mix-blend-mode: normal !important; }
 
             #page-2 { padding-top: 9mm !important; padding-bottom: 18mm !important; }
             #page-2 .calc-page-title { margin-bottom: 10px !important; }
@@ -1025,8 +1028,8 @@
             else if (agency === 'cheongchun') {
                 currentAgencyName = '청춘여행사';
                 const cheongchunLogo = 'https://blogger.googleusercontent.com/img/a/AVvXsEhr8V6rSGGIm0rTvj5_055uxLOGcm1Gu3vDo6l31rPpXBZc31W4xi_rTDBnWztYYcjpKpVyE22EWOHIsE6CPH6tkuIfZ5lesj52njLdlfDrsmMNMUMNgdIIIP4dzjg3h3sSQ2pr36QiuCP0O9toiwcTAKyjMauEA53bDSRhfj8l7yvNsUchLW0j3_QVPig';
-                // 웹에서는 90px로 크고 시원하게, 인쇄 시에는 40px로 자동 축소되어 기본 틀 유지
-                agencyHtml = `<img src="${cheongchunLogo}" alt="${currentAgencyName}" class="h-[90px] mt-[-15px] print:h-[40px] print:mt-0 object-contain float-right mb-1"><div class="clear-both"></div>`;
+                // 웹에서는 90px로 큼직하게, 인쇄 시에는 40px 축소 + 배경 노이즈 제거 필터(.logo-cheongchun) 적용
+                agencyHtml = `<img src="${cheongchunLogo}" alt="${currentAgencyName}" class="logo-cheongchun h-[90px] mt-[-15px] print:h-[40px] print:mt-0 object-contain float-right mb-1"><div class="clear-both"></div>`;
             }
             else if (agency === 'custom') {
                 const cName = document.getElementById('inp-custom-name').value || '여행사명 입력';
