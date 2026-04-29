@@ -198,8 +198,7 @@
             .subtotal-row td { background-color: #eef2f7 !important; }
             .edit-input { border: none !important; background: transparent !important; padding: 0 !important; min-height: auto !important; }
             
-            /* 이미지 인쇄 원본 색상 강제 유지 및 비율 찌그러짐(Hancom PDF 등) 방지 */
-            img, svg { max-width: 100% !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            img, svg { max-width: 100% !important; image-rendering: -webkit-optimize-contrast; print-color-adjust: exact !important; }
             a { color: inherit !important; text-decoration: none !important; }
 
             #page-2 { padding-top: 9mm !important; padding-bottom: 18mm !important; }
@@ -435,7 +434,7 @@
                             <span id="out-issue" class="text-blue-700"></span>
                         </div>
                     </div>
-                    <div class="flex flex-col items-end pt-1 shrink-0" id="out-agency-1"></div>
+                    <div class="text-right pt-1" id="out-agency-1"></div>
                 </div>
 
                 <!-- 일정표 툴바 -->
@@ -672,7 +671,7 @@
             "이호테우": "제주 바다를 배경으로 한 이국적인 조랑말 등대 인생샷",
             "가파도": "매년 봄 초록빛 청보리가 일렁이는 평화롭고 아름다운 섬 속의 섬",
             "우도": "소가 누워있는 모습을 닮은 제주의 아름다운 섬 탐방",
-            "수목원테마파크": "아이스뮤지엄, VR, 그리고 화려한 야간 LED 조명 축제",
+            "수목원테마파크": "아이스뮤지엄, 실내형 테마파크와 화려한 야간 LED 조명 축제",
             "카멜리아힐": "사계절 내내 동양 최대 규모의 아름답고 화려한 수목원 포토존",
             "새별오름": "가을 억새가 장관을 이루는 제주의 대표 오름",
             "용두암": "용이 포효하며 바다에서 솟구치는 듯한 형상의 웅장한 화산 기암괴석",
@@ -1024,24 +1023,23 @@
             let agencyHtml = '';
             let currentAgencyName = '투어메이커';
 
-            // PDF 인쇄 오류(Hancom PDF 블렌드모드 버그, float 레이아웃 깨짐) 방지를 위해 flex 구조로 변경
             if (agency === 'tourmaker') {
-                agencyHtml = `<a href="http://tourmaker.kr" target="_blank"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHfgIX70O5k6Anuo0UgALIdaG9jSga9auHu3uyz0uEirylGPAJnjN_qQbvEGMUvPqUQf_g9FMNUHRxlDcUBf4vZ3Mpy4TnA9WxbmzWYK11gt2zuy_Irl4wctNFjcjLyPo0GPXV792o_J7L9guRMuDfeC1gy7USwywjYbECZgzcsHybuGRRAXAnO1eNmP8/s320/logo.png" alt="TOURMAKER" class="h-[36px] w-auto object-contain bg-white mb-1"></a>`;
+                agencyHtml = `<a href="http://tourmaker.kr" target="_blank"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHfgIX70O5k6Anuo0UgALIdaG9jSga9auHu3uyz0uEirylGPAJnjN_qQbvEGMUvPqUQf_g9FMNUHRxlDcUBf4vZ3Mpy4TnA9WxbmzWYK11gt2zuy_Irl4wctNFjcjLyPo0GPXV792o_J7L9guRMuDfeC1gy7USwywjYbECZgzcsHybuGRRAXAnO1eNmP8/s320/logo.png" alt="TOURMAKER" class="h-[36px] object-contain float-right mb-1"></a><div class="clear-both"></div>`;
             } 
             else if (agency === 'jeju') {
                 currentAgencyName = '(주)제주테마투어';
-                agencyHtml = `<div class="text-[18px] font-black text-slate-800 tracking-widest mt-1 text-right">${currentAgencyName}</div><div class="text-[11px] font-bold text-slate-500 mt-1 text-right">담당: 문정희 (010-2645-7524)</div>`;
+                agencyHtml = `<div class="text-[18px] font-black text-slate-800 tracking-widest mt-1">${currentAgencyName}</div><div class="text-[11px] font-bold text-slate-500 mt-1">담당: 문정희 (010-2645-7524)</div><div class="clear-both"></div>`;
             }
             else if (agency === 'woorideul') {
                 currentAgencyName = '(주)우리들여행';
                 const woorideulLogo = 'https://blogger.googleusercontent.com/img/a/AVvXsEhkIGXEfaJ-_hnuZKhDchK_posExV6zRFC9our1Le1ytGsvui1fRuPODev1S2byqlo75MWRdaWT2CUJjEIrNrSVGGI7PBcB424dimkxc0jZrn_gG7v3S_GCGEsC-DjsxaDS1qIu0HF0ObCZF9LygAodexbi0saCcJQJqe9uJ6vQUhl47NkZuRFROBDNP2s';
-                agencyHtml = `<img src="${woorideulLogo}" alt="${currentAgencyName}" class="h-[36px] w-auto object-contain bg-white mb-1">`;
+                agencyHtml = `<img src="${woorideulLogo}" alt="${currentAgencyName}" class="h-[36px] object-contain float-right mb-1"><div class="clear-both"></div>`;
             }
             else if (agency === 'cheongchun') {
                 currentAgencyName = '청춘여행사';
                 const cheongchunLogo = 'https://blogger.googleusercontent.com/img/a/AVvXsEhr8V6rSGGIm0rTvj5_055uxLOGcm1Gu3vDo6l31rPpXBZc31W4xi_rTDBnWztYYcjpKpVyE22EWOHIsE6CPH6tkuIfZ5lesj52njLdlfDrsmMNMUMNgdIIIP4dzjg3h3sSQ2pr36QiuCP0O9toiwcTAKyjMauEA53bDSRhfj8l7yvNsUchLW0j3_QVPig';
-                // mix-blend-mode를 완전히 삭제하고 순수 이미지 태그만 유지하여 PDF 인쇄 블랙아웃 현상 원천 차단
-                agencyHtml = `<img src="${cheongchunLogo}" alt="${currentAgencyName}" class="h-[75px] w-auto object-contain bg-white" style="margin-top: -12px; margin-bottom: 4px;">`;
+                // 적당한 크기(54px)로 설정하여 레이아웃 변형 방지
+                agencyHtml = `<img src="${cheongchunLogo}" alt="${currentAgencyName}" class="h-[54px] object-contain float-right mb-1"><div class="clear-both"></div>`;
             }
             else if (agency === 'custom') {
                 const cName = document.getElementById('inp-custom-name').value || '여행사명 입력';
@@ -1050,17 +1048,18 @@
                 currentAgencyName = cName;
 
                 if (cLogo) {
-                    agencyHtml = `<img src="${esc(cLogo)}" alt="${esc(cName)}" class="h-[36px] w-auto object-contain bg-white mb-1" onerror="this.style.display='none'">`;
+                    agencyHtml = `<img src="${esc(cLogo)}" alt="${esc(cName)}" class="h-[36px] object-contain float-right mb-1" onerror="this.style.display='none'"><div class="clear-both"></div>`;
                 } else {
-                    agencyHtml = `<div class="text-[18px] font-black text-slate-800 tracking-widest mt-1 text-right">${esc(cName)}</div><div class="text-[11px] font-bold text-slate-500 mt-1 text-right">${esc(cContact)}</div>`;
+                    agencyHtml = `<div class="text-[18px] font-black text-slate-800 tracking-widest mt-1">${esc(cName)}</div><div class="text-[11px] font-bold text-slate-500 mt-1">${esc(cContact)}</div><div class="clear-both"></div>`;
                 }
             }
             
             // 1페이지 일정표 상단 워터마크 텍스트 (투어메이커 노출)
             agencyHtml += `
-                <div class="text-[9px] font-black text-slate-500 tracking-[0.1em] mt-1.5 uppercase border-t border-slate-300 pt-1 w-full text-right">
+                <div class="text-[9px] font-black text-slate-500 tracking-[0.1em] mt-1.5 text-right uppercase border-t border-slate-300 pt-1 inline-block float-right">
                     <a href="http://tourmaker.kr" target="_blank" class="hover:text-blue-600 transition">System powered by tourmaker</a>
                 </div>
+                <div class="clear-both"></div>
             `;
             
             document.getElementById('out-agency-1').innerHTML = agencyHtml;
