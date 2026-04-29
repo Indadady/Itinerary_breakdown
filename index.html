@@ -451,7 +451,6 @@
                     </div>
                     <div class="flex gap-2">
                         <button onclick="addDay()" class="text-[11px] font-bold bg-white border border-green-400 text-green-700 hover:bg-green-50 px-3 py-1 rounded transition shadow-sm">+ 일자 추가</button>
-                        <button onclick="applyPOIAll()" class="text-[11px] font-bold bg-teal-50 border border-teal-300 text-teal-800 hover:bg-teal-100 px-3 py-1 rounded transition shadow-sm">✨ 전체 설명 채우기</button>
                     </div>
                 </div>
 
@@ -663,28 +662,6 @@
         }
 
 // --- 2. 기본 상태(State) 데이터 탑재 ---
-        const poiDB = {
-            "에코랜드": "곶자왈 원시림을 달리는 낭만적인 클래식 기차여행",
-            "신화월드테마파크": "캐릭터와 함께하는 짜릿한 놀이기구 테마파크 체험",
-            "아쿠아플라넷": "아시아 최대 규모의 프리미엄 해양 테마파크 (오션아레나 포함)",
-            "메이즈랜드": "세계 최장 길이의 돌, 바람, 여자 테마 미로공원",
-            "성산일출봉": "유네스코 세계자연유산, 바다 위에 우뚝 솟은 장엄한 수성화산",
-            "항공우주박물관": "아시아 최대 규모의 항공우주 테마 교육 및 체험 시설",
-            "오설록": "끝없이 펼쳐진 푸른 초록빛 녹차밭과 여유로운 티뮤지엄 관람",
-            "이호테우": "제주 바다를 배경으로 한 이국적인 조랑말 등대 인생샷",
-            "가파도": "매년 봄 초록빛 청보리가 일렁이는 평화롭고 아름다운 섬 속의 섬",
-            "우도": "소가 누워있는 모습을 닮은 제주의 아름다운 섬 탐방",
-            "수목원테마파크": "아이스뮤지엄, 실내형 테마파크와 화려한 야간 LED 조명 축제",
-            "카멜리아힐": "사계절 내내 동양 최대 규모의 아름답고 화려한 수목원 포토존",
-            "새별오름": "가을 억새가 장관을 이루는 제주의 대표 오름",
-            "용두암": "용이 포효하며 바다에서 솟구치는 듯한 형상의 웅장한 화산 기암괴석",
-            "제주공항": "설렘 가득한 제주 여행의 시작이자 아쉬운 마무리를 맺는 관문",
-            "9.81 파크": "레이싱 2회 + 서바이벌 1회",
-            "스누피가든": "제주의 자연 속에서 스누피 캐릭터와 함께하는 감성 정원",
-            "천지연폭포": "하늘과 땅이 만나 이룬 연못, 단정한 자태의 폭포",
-            "노형수퍼마켙": "흑백 세상에서 화려한 색채로 빠져드는 미디어아트"
-        };
-
         let days = [
             { date: "09/08(화)", hotel: "신신호텔 제주오션", desc: "원주공항 도착 및 탑승수속 (신분증 지참!)\n11:15 출발 : 원주공항 출발(진에어)\n12:30 도착 : 제주공항 도착 (인원파악 후 출발)\n9.81 파크 (레이싱 2회 + 서바이벌 1회)\n숙소 도착 및 체크인 (석식 후 자유시간)", meal: "조: -\n중: 흑우불고기\n석: 호텔식" },
             { date: "09/09(수)", hotel: "신신호텔 제주오션", desc: "기상 및 조식 후 숙소출발\n함덕해변 서우봉 둘레길\n동쪽송당 동화마을 (감성 정원)\n스누피가든\n에코랜드 (곶자왈 숲속 기차여행)\n숙소 도착 후 석식 및 자유시간", meal: "조: 호텔식\n중: 토종돼지주물럭\n석: 호텔식" },
@@ -765,7 +742,6 @@
                             <div class="action-btn-container absolute left-[-42px] top-2 flex flex-col gap-1 w-9 z-10 no-print">
                                 <button onclick="removeDay(${i})" class="action-btn btn-del-row" title="일정 삭제">✕<br>삭제</button>
                                 <button onclick="toggleHotel(${i})" class="action-btn btn-hotel-row" title="숙소란 토글">🏨<br>숙소</button>
-                                <button onclick="applyPOISingle(${i})" class="action-btn btn-poi-row" title="설명 채우기">✨<br>설명</button>
                             </div>
                             <div contenteditable="true" class="edit-input w-full text-left" onblur="updateDay(${i}, 'desc', this.innerText)" onkeydown="handleEditKeydown(event)">${esc(day.desc)}</div>
                         </td>
@@ -1189,50 +1165,7 @@
         function addCost(type) { costs[type].push({ name: "", desc: "", qty: "", krw: "", note: "" }); renderCostInputs(); renderHeaderAndCosts(); }
         function removeCost(type, i) { costs[type].splice(i, 1); renderCostInputs(); renderHeaderAndCosts(); }
 
-        // --- 6. 설명 채우기 (POI) ---
-        function applyPOI(text, globalUsed) {
-            let updated = false;
-            let newText = text;
-            const sortedKeys = Object.keys(poiDB).sort((a, b) => b.length - a.length);
-            for (const key of sortedKeys) {
-                const val = poiDB[key];
-                if (newText.includes(key) && !newText.includes(val) && !globalUsed.has(key)) {
-                    const hasTargetDesc = new RegExp(key + '\\s*\\(※', 'g');
-                    if (!hasTargetDesc.test(newText)) {
-                        newText = newText.replace(key, `${key} (※ ${val})`);
-                        globalUsed.add(key);
-                        updated = true;
-                    }
-                }
-            }
-            return { text: newText, updated };
-        }
-
-        function getUsedPOIs() {
-            const used = new Set();
-            days.forEach(d => { for (const [k, v] of Object.entries(poiDB)) { if (d.desc.includes(k) && d.desc.includes(v)) used.add(k); } });
-            return used;
-        }
-
-        function applyPOISingle(i) {
-            const used = getUsedPOIs();
-            const res = applyPOI(days[i].desc, used);
-            if (res.updated) { days[i].desc = res.text; renderItinerary(); } 
-            else alert('해당 일자에 더 이상 추가할 수 있는 관광지 설명이 없거나 이미 적용되었습니다.');
-        }
-
-        function applyPOIAll() {
-            const used = getUsedPOIs();
-            let totalUpdated = false;
-            days.forEach((day, i) => {
-                const res = applyPOI(day.desc, used);
-                if (res.updated) { days[i].desc = res.text; totalUpdated = true; }
-            });
-            if (totalUpdated) renderItinerary();
-            else alert('추가할 설명이 없습니다.');
-        }
-
-        // --- 7. 템플릿 관리 ---
+        // --- 6. 템플릿 관리 ---
         function getFormData() {
             return {
                 itinFontSize: document.getElementById('inp-font-size-itin').value,
@@ -1367,7 +1300,7 @@
             changeCostFontSize();
             
             document.getElementById('inp-group-flight').value = "교통비";
-            document.getElementById('inp-group-local').value = "제주 현지 경비";
+            document.getElementById('inp-group-local').value = "현지 경비";
             document.getElementById('inp-group-domestic').value = "기타 비용";
             
             document.getElementById('inp-tax-notice').value = "";
@@ -1393,10 +1326,10 @@
             renderHeaderAndCosts();
         }
 
-        // --- 8. 초기화 (렌더링) ---
+        // --- 7. 초기화 (렌더링) ---
         function initApp() {
             if (!isBlankMode) {
-                document.getElementById('inp-title').value = '황지정보산업고등학교 제주도 테마여행';
+                document.getElementById('inp-title').value = '황지정보산업고등학교 테마여행';
                 document.getElementById('inp-date').value = '2026.09.08 ~ 09.11 (3박 4일)';
                 document.getElementById('inp-pax').value = '45명기준(학생 40+ 교사5)';
                 document.getElementById('inp-per-pax-price').value = '650,000';
